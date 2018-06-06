@@ -43,6 +43,12 @@ client.on('message', msg => {
     addPlayer(fortList, msg);
     return;
   }
+  if (msg.content === '!add') {
+    if (addPlayer(tstList, msg)) {
+      addPlayer(fortList, msg)
+    }
+    return;
+  }
   if (msg.content === '!who') {
     if (tstList.values.length === 0 && fortList.values.length === 0) {
       msg.channel.send('Nobody is added yet');
@@ -66,28 +72,65 @@ client.on('message', msg => {
     removePlayer(fortList, msg);
     return;
   }
+  if (msg.content === '!remove') {
+    /* TODO refactor */
+    let onTSTList = false;
+    let onFortList = false;
+    if (removePlayerId(tstList, msg.author.id)) {
+      printList(tstList, msg.channel);
+      onTSTList = true;
+    }
+    if (removePlayerId(fortList, msg.author.id)) {
+      printList(fortList, msg.channel);
+      onFortList = true;
+    }
+    if (!onTSTList && !onFortList) {
+      msg.reply(`You are not on any list`);
+    }
+    return;
+  }
 });
 
-function removePlayer(list, msg) {
+function otherList(list) {
+  if (list.options.name === 'TST')
+    return fortList;
+  return tstList;
+}
+
+function removePlayerId(list, id) {
   for (let index in list.values) {
-    if (list.values[index].id === msg.author.id) {
+    if (list.values[index].id === id) {
       list.values.splice(index, 1);
-      if (list.values.length === 0) {
-        msg.channel.send(`${list.options.name} list is empty!`);
-      } else {
-        const newList = list.values.map(player => `<@${player.id}>`);
-        msg.channel.send(`${list.options.name} list updated: ${newList}`);
-      }
-      return;
+      return true;
     }
+  }
+  return false;
+}
+
+function printList(list, channel) {
+  if (list.values.length === 0) {
+    channel.send(`${list.options.name} list is empty!`);
+  } else {
+    const newList = list.values.map(player => `<@${player.id}>`);
+    channel.send(`${list.options.name} list updated: ${newList}`);
+  }
+}
+
+function removePlayer(list, msg) {
+  if (removePlayerId(list, msg.author.id)) {
+    printList(list, msg.channel);
+    return;
   }
   msg.reply(`You are not on the ${list.options.name} list`);
 }
 
 function addPlayer(list, msg) {
+  /**
+   * returns false when list reached maximum nr of players
+   */
   if (list.values.length >= list.options.maxPlayers) {
     msg.reply(`Can't add you to ${list.options.name} because it's full`);
-    return;
+    return true;
   }
   const newPlayer = { id: msg.author.id, name: "" };
   if (msg.member.nickname) {
@@ -97,7 +140,7 @@ function addPlayer(list, msg) {
   }
   if (list.values.some(player => player.id === newPlayer.id)) {
     msg.reply(`You are already on the ${list.options.name} list`);
-    return;
+    return true;
   }
   list.values.push(newPlayer);
 
@@ -105,11 +148,16 @@ function addPlayer(list, msg) {
     msg.channel.send(
       `${list.options.name} ready to start!\n${getRandom(list)}`
     );
+    /* TODO write this in a nicer way */
+    const oList = otherList(list);
+    list.values.forEach(player => removePlayerId(oList, player.id));
+    printList(oList, msg.channel);
     list.values = [];
-  } else {
-    const newList = list.values.map(player => `<@${player.id}>`);
-    msg.channel.send(`${list.options.name} list updated: ${newList}`);
+    return false;
   }
+  const newList = list.values.map(player => `<@${player.id}>`);
+  msg.channel.send(`${list.options.name} list updated: ${newList}`);
+  return true;
 }
 
 function getRandom(list) {
