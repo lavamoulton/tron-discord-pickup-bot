@@ -26,15 +26,6 @@ client.on('message', msg => {
     return;
   }
 
-  if (msg.content === '!best') {
-    msg.reply('karas is the best wtf');
-    return;
-  }
-  if (msg.content === '!worst') {
-    msg.reply('nelg is the worst spectator of all time');
-    return;
-  }
-
   if (msg.content === '!add tst') {
     addPlayer(tstList, msg);
     return;
