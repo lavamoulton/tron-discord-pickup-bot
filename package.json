@@ -1,22 +1,26 @@
 {
   "name": "discord-pickup-bot",
   "version": "1.0.0",
-  "description": "thug-life-bot",
+  "description": "discord-pickup-bot",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/karasXXX/discord-pickup-bot.git"
+    "url": "git+https://github.com/peterjcole/discord-pickup-bot.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/karasXXX/discord-pickup-bot/issues"
+    "url": "https://github.com/peterjcole/discord-pickup-bot/issues"
   },
-  "homepage": "https://github.com/karasXXX/discord-pickup-bot#readme",
+  "homepage": "https://github.com/peterjcole/discord-pickup-bot",
   "dependencies": {
     "discord.js": "^11.3.2"
+  },
+  "engines": {
+    "node": "12.x"
   }
 }
