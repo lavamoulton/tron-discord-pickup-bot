@@ -143,7 +143,7 @@ function printList(list, channel) {
     channel.send(`${list.options.name} list is empty!`);
   } else {
     const newList = list.values.map(player => `<@${player.id}>`);
-    channel.send(`${list.options.name} list updated (${list.values.length}/${list.options.maxPlayers}: ${newList}`);
+    channel.send(`${list.options.name} list updated (${list.values.length}/${list.options.maxPlayers}): ${newList}`);
   }
 }
 
