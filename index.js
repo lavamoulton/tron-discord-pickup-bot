@@ -17,6 +17,14 @@ const fortList = {
   }
 };
 
+const wstList = {
+  values: [],
+  options: {
+    maxPlayers: 6,
+    name: 'WST'
+  }
+};
+
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
@@ -34,25 +42,35 @@ client.on('message', msg => {
     addPlayer(fortList, msg);
     return;
   }
+  if (msg.content === '!add wst') {
+    addPlayer(wstList, msg);
+    return;
+  }
   if (msg.content === '!add') {
-    if (addPlayer(tstList, msg)) {
-      addPlayer(fortList, msg)
+    if (addPlayer(fortList, msg)) {
+      if (addPlayer(tstList, msg)) {
+        addPlayer(wstList, msg);
+      }
     }
     return;
   }
   if (msg.content === '!who') {
-    if (tstList.values.length === 0 && fortList.values.length === 0) {
+    if (tstList.values.length === 0 && fortList.values.length === 0 && wstList.values.length === 0) {
       msg.channel.send('Nobody is added yet');
       return;
     }
     if (tstList.values.length > 0)
       msg.channel.send(
-        `TST players added: ${tstList.values.map(player => player.name)}`
+        `TST players added (${tstList.values.length}/${tstList.options.maxPlayers}): ${tstList.values.map(player => player.name)}`
       );
     if (fortList.values.length > 0)
       msg.channel.send(
-        `Fort players added: ${fortList.values.map(player => player.name)}`
+        `Fort players added (${fortList.values.length}/${fortList.options.maxPlayers}): ${fortList.values.map(player => player.name)}`
       );
+    if (wstList.values.length > 0)
+        msg.channel.send(
+          `WST players added (${wstList.values.length}/${wstList.options.maxPlayers}): ${wstList.values.map(player => player.name)}`
+        );
     return;
   }
   if (msg.content === '!remove tst') {
@@ -63,10 +81,14 @@ client.on('message', msg => {
     removePlayer(fortList, msg);
     return;
   }
+  if (msg.content === '!remove wst') {
+    removePlayer(wstList, msg);
+    return;
+  }
   if (msg.content === '!remove') {
-    /* TODO refactor */
     let onTSTList = false;
     let onFortList = false;
+    let onWSTList = false;
     if (removePlayerId(tstList, msg.author.id)) {
       printList(tstList, msg.channel);
       onTSTList = true;
@@ -75,17 +97,35 @@ client.on('message', msg => {
       printList(fortList, msg.channel);
       onFortList = true;
     }
-    if (!onTSTList && !onFortList) {
+    if (removePlayerId(wstList, msg.author.id)) {
+      printList(wstList, msg.channel);
+      onWSTList = true;
+    }
+    if (!onTSTList && !onFortList && !onWSTList) {
       msg.reply(`You are not on any list`);
     }
     return;
   }
 });
 
-function otherList(list) {
-  if (list.options.name === 'TST')
-    return fortList;
-  return tstList;
+function clearOtherLists(list, msg) {
+  if (list.options.name === 'TST') {
+    clearDuplicates(list, wstList, msg);
+    clearDuplicates(list, fortList, msg);
+  }
+  if (list.options.name === 'Fort') {
+    clearDuplicates(list, wstList, msg);
+    clearDuplicates(list, tstList, msg);
+  }
+  if (list.options.name === 'WST') {
+    clearDuplicates(list, fortList, msg);
+    clearDuplicates(list, tstList, msg);
+  }
+}
+
+function clearDuplicates(startedList, targetList, msg) {
+  startedList.values.forEach(player => removePlayerId(targetList, player.id));
+  printList(targetList, msg.channel);
 }
 
 function removePlayerId(list, id) {
@@ -103,7 +143,7 @@ function printList(list, channel) {
     channel.send(`${list.options.name} list is empty!`);
   } else {
     const newList = list.values.map(player => `<@${player.id}>`);
-    channel.send(`${list.options.name} list updated: ${newList}`);
+    channel.send(`${list.options.name} list updated (${list.values.length}/${list.options.maxPlayers}: ${newList}`);
   }
 }
 
@@ -129,25 +169,24 @@ function addPlayer(list, msg) {
   } else {
     newPlayer.name = msg.author.username;
   }
-  if (list.values.some(player => player.id === newPlayer.id)) {
+  /*if (list.values.some(player => player.id === newPlayer.id)) {
     msg.reply(`You are already on the ${list.options.name} list`);
     return true;
-  }
+  }*/
   list.values.push(newPlayer);
 
   if (list.values.length === list.options.maxPlayers) {
+    msg.channel.send(`Test`);
     msg.channel.send(
       `${list.options.name} ready to start!\n${getRandom(list)}`
     );
-    /* TODO write this in a nicer way */
-    const oList = otherList(list);
-    list.values.forEach(player => removePlayerId(oList, player.id));
-    printList(oList, msg.channel);
+    
+    clearOtherLists(list, msg);
     list.values = [];
     return false;
   }
   const newList = list.values.map(player => `<@${player.id}>`);
-  msg.channel.send(`${list.options.name} list updated: ${newList}`);
+  msg.channel.send(`${list.options.name} list updated (${list.values.length}/${list.options.maxPlayers}): ${newList}`);
   return true;
 }
 
@@ -162,6 +201,17 @@ function getRandom(list) {
     );
   }
   if (list.options.name === 'Fort') {
+    shuffle(list.values);
+    const nonCaptains = list.values
+      .slice(2, list.values.length)
+      .map(player => `<@${player.id}>`);
+    return (
+      `Team 1 captain: <@${list.values[0].id}>\n` +
+      `Team 2 captain: <@${list.values[1].id}>\n` +
+      `Everyone else: ${nonCaptains}`
+    );
+  }
+  if (list.options.name === 'WST') {
     shuffle(list.values);
     const nonCaptains = list.values
       .slice(2, list.values.length)
