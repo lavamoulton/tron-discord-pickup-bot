@@ -169,10 +169,10 @@ function addPlayer(list, msg) {
   } else {
     newPlayer.name = msg.author.username;
   }
-  /*if (list.values.some(player => player.id === newPlayer.id)) {
+  if (list.values.some(player => player.id === newPlayer.id)) {
     msg.reply(`You are already on the ${list.options.name} list`);
     return true;
-  }*/
+  }
   list.values.push(newPlayer);
 
   if (list.values.length === list.options.maxPlayers) {
