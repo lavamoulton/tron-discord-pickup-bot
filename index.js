@@ -176,7 +176,6 @@ function addPlayer(list, msg) {
   list.values.push(newPlayer);
 
   if (list.values.length === list.options.maxPlayers) {
-    msg.channel.send(`Test`);
     msg.channel.send(
       `${list.options.name} ready to start!\n${getRandom(list)}`
     );
