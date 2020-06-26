@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/peterjcole/discord-pickup-bot.git"
+    "url": "git+https://github.com/lavamoulton/tron-discord-pickup-bot.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/peterjcole/discord-pickup-bot/issues"
+    "url": "https://github.com/lavamoulton/tron-discord-pickup-bot/issues"
   },
-  "homepage": "https://github.com/peterjcole/discord-pickup-bot",
+  "homepage": "https://github.com/lavamoulton/tron-discord-pickup-bot",
   "dependencies": {
     "discord.js": "^11.3.2"
   },
