@@ -34,8 +34,6 @@ client.on('message', msg => {
     return;
   }
 
-  msg.channel.send(msg.content.toLowerCase());
-
   if (msg.content.toLowerCase() === '!add tst') {
     addPlayer(tstList, msg);
     return;
@@ -118,7 +116,22 @@ client.on('message', msg => {
     }
     return;
   }
+  if (msg.content.toLowerCase() === '!help') {
+    msg.channel.send(printHelpMessage(msg))
+  }
 });
+
+function printHelpMessage(msg) {
+    return (`@${msg.author.id}, available pickup commands are:\n` +
+            `**!add**: Add to all available game modes\n` +
+            `**!add <gamemode>**: Add to a specific game mode (fort, tst, or wst)\n` +
+            `**!add nowst**: Add to fort and tst game modes only\n` +
+            `**!add sumo**: Add to sumo game modes only\n\n` +
+            `**!remove**: Remove from all added game modes\n` +
+            `**!remove <gamemode>**: Remove from a specific game mode (fort, tst, or wst)\n\n` +
+            `**!who**: Display who is added to each game mode\n`
+  );
+}
 
 function clearOtherLists(list, msg) {
   if (list.options.name === 'TST') {
