@@ -34,19 +34,29 @@ client.on('message', msg => {
     return;
   }
 
-  if (msg.content === '!add tst') {
+  if (msg.content.toLowerCase() === '!add tst') {
     addPlayer(tstList, msg);
     return;
   }
-  if (msg.content === '!add fort') {
+  if (msg.content.toLowerCase() === '!add fort') {
     addPlayer(fortList, msg);
     return;
   }
-  if (msg.content === '!add wst') {
+  if (msg.content.toLowerCase() === '!add wst') {
     addPlayer(wstList, msg);
     return;
   }
-  if (msg.content === '!add') {
+  if (msg.content.toLowerCase() === '!add sumo') {
+    if (addPlayer(tstList, msg)) {
+      addPlayer(wstList, msg);
+    }
+  }
+  if (msg.content.toLowerCase() === '!add nowst') {
+    if (addPlayer(fortList, msg)) {
+      addPlayer(tstList, msg);
+    }
+  }
+  if (msg.content.toLowerCase() === '!add') {
     if (addPlayer(fortList, msg)) {
       if (addPlayer(tstList, msg)) {
         addPlayer(wstList, msg);
@@ -54,7 +64,7 @@ client.on('message', msg => {
     }
     return;
   }
-  if (msg.content === '!who') {
+  if (msg.content.toLowerCase() === '!who') {
     if (tstList.values.length === 0 && fortList.values.length === 0 && wstList.values.length === 0) {
       msg.channel.send('Nobody is added yet');
       return;
@@ -73,19 +83,19 @@ client.on('message', msg => {
         );
     return;
   }
-  if (msg.content === '!remove tst') {
+  if (msg.content.toLowerCase() === '!remove tst') {
     removePlayer(tstList, msg);
     return;
   }
-  if (msg.content === '!remove fort') {
+  if (msg.content.toLowerCase() === '!remove fort') {
     removePlayer(fortList, msg);
     return;
   }
-  if (msg.content === '!remove wst') {
+  if (msg.content.toLowerCase() === '!remove wst') {
     removePlayer(wstList, msg);
     return;
   }
-  if (msg.content === '!remove') {
+  if (msg.content.toLowerCase() === '!remove') {
     let onTSTList = false;
     let onFortList = false;
     let onWSTList = false;
@@ -176,7 +186,6 @@ function addPlayer(list, msg) {
   list.values.push(newPlayer);
 
   if (list.values.length === list.options.maxPlayers) {
-    msg.channel.send(`Test`);
     msg.channel.send(
       `${list.options.name} ready to start!\n${getRandom(list)}`
     );
