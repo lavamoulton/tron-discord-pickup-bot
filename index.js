@@ -122,14 +122,14 @@ client.on('message', msg => {
 });
 
 function printHelpMessage(msg) {
-    return (`@${msg.author.id}, available pickup commands are:\n` +
-            `**!add**: Add to all available game modes\n` +
-            `**!add <gamemode>**: Add to a specific game mode (fort, tst, or wst)\n` +
-            `**!add nowst**: Add to fort and tst game modes only\n` +
-            `**!add sumo**: Add to sumo game modes only\n\n` +
-            `**!remove**: Remove from all added game modes\n` +
+    return (`@${msg.author.username}, available pickup commands are:\n` +
+            `**!add**:               Add to all available game modes\n` +
+            `**!add <gamemode>**:    Add to a specific game mode (fort, tst, or wst)\n` +
+            `**!add nowst**:         Add to fort and tst game modes only\n` +
+            `**!add sumo**:          Add to sumo game modes only\n\n` +
+            `**!remove**:            Remove from all added game modes\n` +
             `**!remove <gamemode>**: Remove from a specific game mode (fort, tst, or wst)\n\n` +
-            `**!who**: Display who is added to each game mode\n`
+            `**!who**:               Display who is added to each game mode\n`
   );
 }
 
