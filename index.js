@@ -122,10 +122,6 @@ client.on('message', msg => {
 });
 
 function printHelpMessage(msg) {
-  const playerName = msg.author.username;
-  if (msg.member.nickname) {
-     playerName = msg.member.nickname;
-  }
   return (`<@${msg.author.id}>, available pickup commands are:\n` +
             `**!add**: Add to all available game modes\n` +
             `**!add <gamemode>**: Add to a specific game mode (fort, tst, or wst)\n` +
