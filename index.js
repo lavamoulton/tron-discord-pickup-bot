@@ -34,6 +34,8 @@ client.on('message', msg => {
     return;
   }
 
+  print(msg.content.toLowerCase());
+
   if (msg.content.toLowerCase() === '!add tst') {
     addPlayer(tstList, msg);
     return;
