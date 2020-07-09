@@ -31,9 +31,13 @@ client.on('ready', () => {
 
 client.on('message', msg => {
 
-  // skip message if not in the right channel
+  // skip message if it meets the following conditions
 
   if (msg.channel.name !== 'pickup') {
+    return;
+  }
+
+  if (msg.author.id === client.author.id) {
     return;
   }
 
@@ -95,7 +99,7 @@ client.on('message', msg => {
     return;
   }
   if (msg.content.toLowerCase() === '!help') {
-    msg.channel.send(printHelpMessage(msg))
+    printHelpMessage(msg);
     return;
   }
 
@@ -134,7 +138,37 @@ client.on('message', msg => {
     }
     return;
   }
+
+  // Development / Testing functionality
+
+  if (msg.channel.name === process.env.TESTING_CHANNEL) {
+    if (msg.content.toLowerCase() === '!start tst') {
+      startList(tstList, msg);
+    }
+    if (msg.content.toLowerCase() === '!start fort') {
+      startList(fortList, msg);
+    }
+    if (msg.content.toLowerCase() === '!start wst') {
+      startList(wstList, msg);
+    }
+    return;
+  }
 });
+
+// Development / Testing helper functions
+
+function startList(list, msg) {
+  const newPlayer = { id: msg.author.id, name: "" };
+  for (i=0; i<list.options.maxPlayers; i++) {
+    newPlayer.name = "User" + i.toString();
+    list.values.push(newPlayer);
+  }
+  msg.channel.send(
+    `${list.options.name} ready to start!\n${getRandom(list)}`
+  );
+
+  list.values = [];
+}
 
 // Add helper functions
 
@@ -175,7 +209,7 @@ function addPlayer(list, msg) {
 // Utility helper functions
 
 function printHelpMessage(msg) {
-  return (`<@${msg.author.id}>, available pickup commands are:\n` +
+  msg.reply('available pickup commands are:\n' +
             `**!add**: Add to all available game modes\n` +
             `**!add <gamemode>**: Add to a specific game mode (fort, tst, or wst)\n` +
             `**!add nowst**: Add to fort and tst game modes only\n` +
