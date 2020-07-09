@@ -30,9 +30,18 @@ client.on('ready', () => {
 });
 
 client.on('message', msg => {
+
+  // skip message if it meets the following conditions
+
   if (msg.channel.name !== 'pickup') {
     return;
   }
+
+  if (msg.author.id === client.author.id) {
+    return;
+  }
+
+  // !add functionality
 
   if (msg.content.toLowerCase() === '!add tst') {
     addPlayer(tstList, msg);
@@ -47,23 +56,29 @@ client.on('message', msg => {
     return;
   }
   if (msg.content.toLowerCase() === '!add sumo') {
-    if (addPlayer(tstList, msg)) {
-      addPlayer(wstList, msg);
-    }
-  }
-  if (msg.content.toLowerCase() === '!add nowst') {
-    if (addPlayer(fortList, msg)) {
+    if (addPlayer(wstList, msg)) {
       addPlayer(tstList, msg);
     }
+    return;
+  }
+  if (msg.content.toLowerCase() === '!add nowst') {
+    if (addPlayer(tstList, msg)) {
+      addPlayer(fortList, msg);
+    }
+    return;
   }
   if (msg.content.toLowerCase() === '!add') {
-    if (addPlayer(fortList, msg)) {
+    if (addPlayer(wstList, msg)) {
       if (addPlayer(tstList, msg)) {
-        addPlayer(wstList, msg);
+        addPlayer(fortList, msg);
       }
     }
     return;
   }
+
+  // Utility functionality
+  
+  // #TODO: pull out into separate function, passing list argument in 
   if (msg.content.toLowerCase() === '!who') {
     if (tstList.values.length === 0 && fortList.values.length === 0 && wstList.values.length === 0) {
       msg.channel.send('Nobody is added yet');
@@ -78,11 +93,18 @@ client.on('message', msg => {
         `Fort players added (${fortList.values.length}/${fortList.options.maxPlayers}): ${fortList.values.map(player => player.name)}`
       );
     if (wstList.values.length > 0)
-        msg.channel.send(
-          `WST players added (${wstList.values.length}/${wstList.options.maxPlayers}): ${wstList.values.map(player => player.name)}`
-        );
+      msg.channel.send(
+        `WST players added (${wstList.values.length}/${wstList.options.maxPlayers}): ${wstList.values.map(player => player.name)}`
+      );
     return;
   }
+  if (msg.content.toLowerCase() === '!help') {
+    printHelpMessage(msg);
+    return;
+  }
+
+  // !remove functionality
+
   if (msg.content.toLowerCase() === '!remove tst') {
     removePlayer(tstList, msg);
     return;
@@ -116,13 +138,78 @@ client.on('message', msg => {
     }
     return;
   }
-  if (msg.content.toLowerCase() === '!help') {
-    msg.channel.send(printHelpMessage(msg))
+
+  // Development / Testing functionality
+
+  if (msg.channel.name === process.env.TESTING_CHANNEL) {
+    if (msg.content.toLowerCase() === '!start tst') {
+      startList(tstList, msg);
+    }
+    if (msg.content.toLowerCase() === '!start fort') {
+      startList(fortList, msg);
+    }
+    if (msg.content.toLowerCase() === '!start wst') {
+      startList(wstList, msg);
+    }
+    return;
   }
 });
 
+// Development / Testing helper functions
+
+function startList(list, msg) {
+  const newPlayer = { id: msg.author.id, name: "" };
+  for (i=0; i<list.options.maxPlayers; i++) {
+    newPlayer.name = "User" + i.toString();
+    list.values.push(newPlayer);
+  }
+  msg.channel.send(
+    `${list.options.name} ready to start!\n${getRandom(list)}`
+  );
+
+  list.values = [];
+}
+
+// Add helper functions
+
+function addPlayer(list, msg) {
+  /**
+   * returns false when list reached maximum nr of players
+   */
+  if (list.values.length >= list.options.maxPlayers) {
+    msg.reply(`Can't add you to ${list.options.name} because it's full`);
+    return true;
+  }
+  const newPlayer = { id: msg.author.id, name: "" };
+  if (msg.member.nickname) {
+    newPlayer.name = msg.member.nickname;
+  } else {
+    newPlayer.name = msg.author.username;
+  }
+  if (list.values.some(player => player.id === newPlayer.id)) {
+    msg.reply(`You are already on the ${list.options.name} list`);
+    return true;
+  }
+  list.values.push(newPlayer);
+
+  if (list.values.length === list.options.maxPlayers) {
+    msg.channel.send(
+      `${list.options.name} ready to start!\n${getRandom(list)}`
+    );
+    
+    clearOtherLists(list, msg);
+    list.values = [];
+    return false;
+  }
+  const newList = list.values.map(player => `<@${player.id}>`);
+  msg.channel.send(`${list.options.name} list updated (${list.values.length}/${list.options.maxPlayers}): ${newList}`);
+  return true;
+}
+
+// Utility helper functions
+
 function printHelpMessage(msg) {
-  return (`<@${msg.author.id}>, available pickup commands are:\n` +
+  msg.reply('available pickup commands are:\n' +
             `**!add**: Add to all available game modes\n` +
             `**!add <gamemode>**: Add to a specific game mode (fort, tst, or wst)\n` +
             `**!add nowst**: Add to fort and tst game modes only\n` +
@@ -132,6 +219,17 @@ function printHelpMessage(msg) {
             `**!who**: Display who is added to each game mode\n`
   );
 }
+
+function printList(list, channel) {
+  if (list.values.length === 0) {
+    channel.send(`${list.options.name} list is empty!`);
+  } else {
+    const newList = list.values.map(player => `<@${player.id}>`);
+    channel.send(`${list.options.name} list updated (${list.values.length}/${list.options.maxPlayers}: ${newList}`);
+  }
+}
+
+// Remove helper functions
 
 function clearOtherLists(list, msg) {
   if (list.options.name === 'TST') {
@@ -180,39 +278,7 @@ function removePlayer(list, msg) {
   msg.reply(`You are not on the ${list.options.name} list`);
 }
 
-function addPlayer(list, msg) {
-  /**
-   * returns false when list reached maximum nr of players
-   */
-  if (list.values.length >= list.options.maxPlayers) {
-    msg.reply(`Can't add you to ${list.options.name} because it's full`);
-    return true;
-  }
-  const newPlayer = { id: msg.author.id, name: "" };
-  if (msg.member.nickname) {
-    newPlayer.name = msg.member.nickname;
-  } else {
-    newPlayer.name = msg.author.username;
-  }
-  if (list.values.some(player => player.id === newPlayer.id)) {
-    msg.reply(`You are already on the ${list.options.name} list`);
-    return true;
-  }
-  list.values.push(newPlayer);
-
-  if (list.values.length === list.options.maxPlayers) {
-    msg.channel.send(
-      `${list.options.name} ready to start!\n${getRandom(list)}`
-    );
-    
-    clearOtherLists(list, msg);
-    list.values = [];
-    return false;
-  }
-  const newList = list.values.map(player => `<@${player.id}>`);
-  msg.channel.send(`${list.options.name} list updated (${list.values.length}/${list.options.maxPlayers}): ${newList}`);
-  return true;
-}
+// Randomize ready to start game modes
 
 function getRandom(list) {
   if (list.options.name === 'TST') {
