@@ -144,8 +144,8 @@ client.on('message', msg => {
   }
 
   // Development / Testing functionality
-  console.log(`Message in channel: ${msg.channel.name}`);
-  if (msg.channel.name === process.env.TESTING_CHANNEL) {
+  console.log(`Message in channel: ${msg.channel.guild.name}`);
+  if (msg.channel.guild.name === process.env.TESTING_CHANNEL) {
     if (msg.content.toLowerCase() === '!start tst') {
       startList(tstList, msg);
     }
