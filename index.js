@@ -36,10 +36,12 @@ client.on('message', msg => {
   // skip message if it meets the following conditions
 
   if (msg.channel.name !== 'pickup') {
+    console.log(`SKIP: Wrong channel`);
     return;
   }
 
   if (msg.author.id === client.user.id) {
+    console.log(`SKIP: Wrote this one myself`);
     return;
   }
 
@@ -142,7 +144,7 @@ client.on('message', msg => {
   }
 
   // Development / Testing functionality
-
+  console.log(`Message in channel: ${msg.channel.name}`);
   if (msg.channel.name === process.env.TESTING_CHANNEL) {
     if (msg.content.toLowerCase() === '!start tst') {
       startList(tstList, msg);
