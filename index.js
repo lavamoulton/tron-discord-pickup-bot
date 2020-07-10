@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
@@ -37,7 +39,7 @@ client.on('message', msg => {
     return;
   }
 
-  if (msg.author.id === client.author.id) {
+  if (msg.author.id === client.user.id) {
     return;
   }
 
