@@ -267,14 +267,17 @@ function whoAddedList(list, msg) {
 }
 
 function isAnyoneAdded() {
-  result = false;
-  aggList.forEach(function (list, index) {
+  console.log("I made it here!");
+  console.log(aggList.length);
+
+  aggList.forEach(function (list) {
+    console.log(list.options.name);
+    console.log(list.length);
     if (list.values.length != 0) {
-      result = true;
-      return result;
+      return true;
     }
   });
-  return result;
+  return false;
 }
 
 // Remove helper functions
