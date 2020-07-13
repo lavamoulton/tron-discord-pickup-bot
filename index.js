@@ -15,7 +15,7 @@ const fortList6 = {
   values: [],
   options: {
     maxPlayers: 12,
-    name: 'Fort6'
+    name: 'Fort6v6'
   }
 };
 
@@ -23,7 +23,7 @@ const fortList5 = {
   values: [],
   options: {
     maxPlayers: 10,
-    name: 'Fort5'
+    name: 'Fort5v5'
   }
 }
 
@@ -35,14 +35,11 @@ const wstList = {
   }
 };
 
-const aggList = {
-  values: [wstList, tstList, fortList5, fortList6],
-  options: {
-    name: 'aggList'
-  }
+const aggList = [wstList, tstList, fortList5, fortList6];
+  
+const someoneAdded = {
+  value: false,
 };
-
-const someoneAdded = true;
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -215,7 +212,7 @@ function addPlayer(list, msg) {
     return true;
   }
   list.values.push(newPlayer);
-  someoneAdded = true;
+  someoneAdded.value = true;
 
   if (list.values.length === list.options.maxPlayers) {
     msg.channel.send(
@@ -255,12 +252,12 @@ function printList(list, channel) {
 }
 
 function whoAllAdded(msg) {
-  if (someoneAdded) {
+  if (!someoneAdded.value) {
     msg.channel.send('Nobody is added yet');
+    return;
   }
-  for (const list in aggList) {
-    whoAddedList(list, msg);
-  }
+  aggList.forEach(list => whoAddedList(list, msg));
+  return;
 }
 
 function whoAddedList(list, msg) {
@@ -273,12 +270,12 @@ function whoAddedList(list, msg) {
 
 function isAnyoneAdded() {
   result = false;
-  for (const list in aggList) {
+  aggList.forEach(function (list, index) {
     if (list.values.length != 0) {
       result = true;
       return result;
     }
-  }
+  });
   return result;
 }
 
@@ -290,7 +287,7 @@ function clearOtherLists(list, msg) {
     clearDuplicates(list, fortList6, msg);
     clearDuplicates(list, fortList5, msg);
   }
-  if (list.options.name === 'Fort6') {
+  if (list.options.name === 'Fort6v6') {
     clearDuplicates(list, wstList, msg);
     clearDuplicates(list, tstList, msg);
     clearDuplicates(list, fortList5, msg);
@@ -300,12 +297,12 @@ function clearOtherLists(list, msg) {
     clearDuplicates(list, fortList5, msg);
     clearDuplicates(list, tstList, msg);
   }
-  if (list.options.name === 'Fort5') {
+  if (list.options.name === 'Fort5v5') {
     clearDuplicates(list, fortList6, msg);
     clearDuplicates(list, wstList, msg);
     clearDuplicates(list, tstList, msg);
   }
-  someoneAdded = isAnyoneAdded();
+  someoneAdded.value = isAnyoneAdded();
   return;
 }
 
@@ -345,7 +342,7 @@ function getRandom(list) {
       `Team 4: <@${list.values[6].id}>, <@${list.values[7].id}>\n`
     );
   }
-  if (list.options.name === 'Fort5' || 'Fort6' || 'WST') {
+  if (list.options.name === 'Fort5v5' || 'Fort6v6' || 'WST') {
     shuffle(list.values);
     return getDraft(list);
   }
