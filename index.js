@@ -35,7 +35,15 @@ const wstList = {
   }
 };
 
-const aggList = [wstList, tstList, fortList5, fortList6];
+const ctfList = {
+  values: [],
+  options: {
+    maxPlayers: 8,
+    name: 'CTF'
+  }
+};
+
+const aggList = [wstList, tstList, ctfList, fortList5, fortList6];
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -73,6 +81,10 @@ client.on('message', msg => {
     addPlayer(wstList, msg);
     return;
   }
+  if (msg.content.toLowerCase() === '!add ctf') {
+    addPlayer(ctfList, msg);
+    return;
+  }
   if (msg.content.toLowerCase() === '!add fort') {
     if (addPlayer(fortList5, msg)) {
       addPlayer(fortList6, msg);
@@ -96,7 +108,7 @@ client.on('message', msg => {
   if (msg.content.toLowerCase() === '!add') {
     if (addPlayer(wstList, msg)) {
       if (addPlayer(tstList, msg)) {
-        if (addPlayer(fortList5, msg)) { 
+        if (addPlayer(fortList5, msg)) {
           addPlayer(fortList6, msg);
         }
       }
@@ -130,10 +142,16 @@ client.on('message', msg => {
     removePlayer(wstList, msg);
     return;
   }
+  if (msg.content.toLowerCase() === '!remove ctf') {
+    removePlayer(ctfList, msg);
+    return;
+  }
   if (msg.content.toLowerCase() === '!remove') {
     let onTSTList = false;
     let onfortList6 = false;
+    let onfortList5 = false;
     let onWSTList = false;
+    let onCTFList = false;
     if (removePlayerId(wstList, msg.author.id)) {
       printList(wstList, msg.channel);
       onWSTList = true;
@@ -142,15 +160,19 @@ client.on('message', msg => {
       printList(tstList, msg.channel);
       onTSTList = true;
     }
+    if (removePlayerId(ctfList, msg.author.id)) {
+      printList(ctfList, msg.channel);
+      onCTFList = true;
+    }
     if (removePlayerId(fortList5, msg.author.id)) {
       printList(fortList5, msg.channel);
-      onfortList6 = true;
+      onfortList5 = true;
     }
     if (removePlayerId(fortList6, msg.author.id)) {
       printList(fortList6, msg.channel);
-      onWSTList = true;
+      onfortList6 = true;
     }
-    if (!onTSTList && !onfortList6 && !onWSTList) {
+    if (!onTSTList && !onfortList6 && !onfortList6 && !onWSTList && !onCTFList) {
       msg.reply(`You are not on any list`);
     }
     return;
@@ -161,15 +183,15 @@ client.on('message', msg => {
   if (msg.channel.guild.name === process.env.TESTING_CHANNEL) {
     if (msg.content.toLowerCase() === '!start tst') {
       startList(tstList, msg);
-      clearOtherLists(tstList, msg);
     }
     if (msg.content.toLowerCase() === '!start fort') {
       startList(fortList6, msg);
-      clearOtherLists(fortList6, msg);
     }
     if (msg.content.toLowerCase() === '!start wst') {
       startList(wstList, msg);
-      clearOtherLists(wstList, msg);
+    }
+    if (msg.content.toLowerCase() === '!start ctf') {
+      startList(ctfList, msg);
     }
     return;
   }
@@ -230,12 +252,12 @@ function addPlayer(list, msg) {
 
 function printHelpMessage(msg) {
   msg.reply('available pickup commands are:\n' +
-            `**!add**: Add to all available game modes\n` +
-            `**!add <gamemode>**: Add to a specific game mode (fort, tst, or wst)\n` +
+            `**!add**: Add to all available fort / sumo game modes\n` +
+            `**!add <gamemode>**: Add to a specific game mode (options are: fort5, fort6, tst, wst, or ctf)\n` +
             `**!add nowst**: Add to fort and tst game modes only\n` +
             `**!add sumo**: Add to sumo game modes only\n\n` +
             `**!remove**: Remove from all added game modes\n` +
-            `**!remove <gamemode>**: Remove from a specific game mode (fort, tst, or wst)\n\n` +
+            `**!remove <gamemode>**: Remove from a specific game mode (options are: fort5, fort6, tst, wst, or ctf)\n\n` +
             `**!who**: Display who is added to each game mode\n`
   );
 }
@@ -245,7 +267,7 @@ function printList(list, channel) {
     channel.send(`${list.options.name} list is empty!`);
   } else {
     const newList = list.values.map(player => `<@${player.id}>`);
-    channel.send(`${list.options.name} list updated (${list.values.length}/${list.options.maxPlayers}: ${newList}`);
+    channel.send(`${list.options.name} list updated (${list.values.length}/${list.options.maxPlayers}): ${newList}`);
   }
 }
 
@@ -269,10 +291,7 @@ function whoAddedList(list, msg) {
 function isAnyoneAdded() {
   var result = false;
   aggList.forEach(function (list) {
-    console.log(list.options.name);
-    console.log(list.values.length);
     if (list.values.length != 0) {
-      console.log('This list has someone!');
       result = true;
     }
   });
@@ -282,26 +301,13 @@ function isAnyoneAdded() {
 // Remove helper functions
 
 function clearOtherLists(list, msg) {
-  if (list.options.name === 'TST') {
-    clearDuplicates(list, wstList, msg);
-    clearDuplicates(list, fortList6, msg);
-    clearDuplicates(list, fortList5, msg);
-  }
-  if (list.options.name === 'Fort6v6') {
-    clearDuplicates(list, wstList, msg);
-    clearDuplicates(list, tstList, msg);
-    clearDuplicates(list, fortList5, msg);
-  }
-  if (list.options.name === 'WST') {
-    clearDuplicates(list, fortList6, msg);
-    clearDuplicates(list, fortList5, msg);
-    clearDuplicates(list, tstList, msg);
-  }
-  if (list.options.name === 'Fort5v5') {
-    clearDuplicates(list, fortList6, msg);
-    clearDuplicates(list, wstList, msg);
-    clearDuplicates(list, tstList, msg);
-  }
+  aggList.forEach(function (itrList) {
+    if (list.options.name === itrList.options.name) {
+      continue;
+    } else {
+      clearDuplicates(list, itrList, msg);
+    }
+  });
   return;
 }
 
@@ -341,7 +347,7 @@ function getRandom(list) {
       `Team 4: <@${list.values[6].id}>, <@${list.values[7].id}>\n`
     );
   }
-  if (list.options.name === 'Fort5v5' || 'Fort6v6' || 'WST') {
+  if (list.options.name === 'Fort5v5' || 'Fort6v6' || 'WST' || 'CTF') {
     shuffle(list.values);
     return getDraft(list);
   }
