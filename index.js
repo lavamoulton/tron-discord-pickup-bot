@@ -209,6 +209,7 @@ function startList(list, msg) {
     `${list.options.name} ready to start!\n${getRandom(list)}`
   );
 
+  clearOtherLists(list, msg);
   list.values = [];
 }
 
