@@ -303,9 +303,7 @@ function isAnyoneAdded() {
 
 function clearOtherLists(list, msg) {
   aggList.forEach(function (itrList) {
-    if (list.options.name === itrList.options.name) {
-      continue;
-    } else {
+    if (list.options.name !== itrList.options.name) {
       clearDuplicates(list, itrList, msg);
     }
   });
