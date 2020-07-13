@@ -11,13 +11,21 @@ const tstList = {
   }
 };
 
-const fortList = {
+const fortList6 = {
   values: [],
   options: {
     maxPlayers: 12,
-    name: 'Fort'
+    name: 'Fort6'
   }
 };
+
+const fortList5 = {
+  values: [],
+  options: {
+    maxPlayers: 10,
+    name: 'Fort5'
+  }
+}
 
 const wstList = {
   values: [],
@@ -26,6 +34,15 @@ const wstList = {
     name: 'WST'
   }
 };
+
+const aggList = {
+  values: [wstList, tstList, fortList5, fortList6],
+  options: {
+    name: 'aggList'
+  }
+};
+
+const someoneAdded = true;
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -51,12 +68,22 @@ client.on('message', msg => {
     addPlayer(tstList, msg);
     return;
   }
-  if (msg.content.toLowerCase() === '!add fort') {
-    addPlayer(fortList, msg);
+  if (msg.content.toLowerCase() === '!add fort5') {
+    addPlayer(fortList5, msg);
+    return;
+  }
+  if (msg.content.toLowerCase() === '!add fort6') {
+    addPlayer(fortList6, msg);
     return;
   }
   if (msg.content.toLowerCase() === '!add wst') {
     addPlayer(wstList, msg);
+    return;
+  }
+  if (msg.content.toLowerCase() === '!add fort') {
+    if (addPlayer(fortList5, msg)) {
+      addPlayer(fortList6, msg);
+    }
     return;
   }
   if (msg.content.toLowerCase() === '!add sumo') {
@@ -67,14 +94,18 @@ client.on('message', msg => {
   }
   if (msg.content.toLowerCase() === '!add nowst') {
     if (addPlayer(tstList, msg)) {
-      addPlayer(fortList, msg);
+      if (addPlayer(fortList5, msg)) {
+        addPlayer(fortList6, msg);
+      }
     }
     return;
   }
   if (msg.content.toLowerCase() === '!add') {
     if (addPlayer(wstList, msg)) {
       if (addPlayer(tstList, msg)) {
-        addPlayer(fortList, msg);
+        if (addPlayer(fortList5, msg)) { 
+          addPlayer(fortList6, msg);
+        }
       }
     }
     return;
@@ -82,26 +113,11 @@ client.on('message', msg => {
 
   // Utility functionality
   
-  // #TODO: pull out into separate function, passing list argument in 
   if (msg.content.toLowerCase() === '!who') {
-    if (tstList.values.length === 0 && fortList.values.length === 0 && wstList.values.length === 0) {
-      msg.channel.send('Nobody is added yet');
-      return;
-    }
-    if (tstList.values.length > 0)
-      msg.channel.send(
-        `TST players added (${tstList.values.length}/${tstList.options.maxPlayers}): ${tstList.values.map(player => player.name)}`
-      );
-    if (fortList.values.length > 0)
-      msg.channel.send(
-        `Fort players added (${fortList.values.length}/${fortList.options.maxPlayers}): ${fortList.values.map(player => player.name)}`
-      );
-    if (wstList.values.length > 0)
-      msg.channel.send(
-        `WST players added (${wstList.values.length}/${wstList.options.maxPlayers}): ${wstList.values.map(player => player.name)}`
-      );
+    whoAllAdded(msg);
     return;
   }
+
   if (msg.content.toLowerCase() === '!help') {
     printHelpMessage(msg);
     return;
@@ -114,7 +130,7 @@ client.on('message', msg => {
     return;
   }
   if (msg.content.toLowerCase() === '!remove fort') {
-    removePlayer(fortList, msg);
+    removePlayer(fortList6, msg);
     return;
   }
   if (msg.content.toLowerCase() === '!remove wst') {
@@ -123,34 +139,38 @@ client.on('message', msg => {
   }
   if (msg.content.toLowerCase() === '!remove') {
     let onTSTList = false;
-    let onFortList = false;
+    let onfortList6 = false;
     let onWSTList = false;
-    if (removePlayerId(tstList, msg.author.id)) {
-      printList(tstList, msg.channel);
-      onTSTList = true;
-    }
-    if (removePlayerId(fortList, msg.author.id)) {
-      printList(fortList, msg.channel);
-      onFortList = true;
-    }
     if (removePlayerId(wstList, msg.author.id)) {
       printList(wstList, msg.channel);
       onWSTList = true;
     }
-    if (!onTSTList && !onFortList && !onWSTList) {
+    if (removePlayerId(tstList, msg.author.id)) {
+      printList(tstList, msg.channel);
+      onTSTList = true;
+    }
+    if (removePlayerId(fortList5, msg.author.id)) {
+      printList(fortList5, msg.channel);
+      onfortList6 = true;
+    }
+    if (removePlayerId(fortList6, msg.author.id)) {
+      printList(fortList6, msg.channel);
+      onWSTList = true;
+    }
+    if (!onTSTList && !onfortList6 && !onWSTList) {
       msg.reply(`You are not on any list`);
     }
     return;
   }
 
   // Development / Testing functionality
-  console.log(`Message in channel: ${msg.channel.guild.name}`);
+
   if (msg.channel.guild.name === process.env.TESTING_CHANNEL) {
     if (msg.content.toLowerCase() === '!start tst') {
       startList(tstList, msg);
     }
     if (msg.content.toLowerCase() === '!start fort') {
-      startList(fortList, msg);
+      startList(fortList6, msg);
     }
     if (msg.content.toLowerCase() === '!start wst') {
       startList(wstList, msg);
@@ -195,6 +215,7 @@ function addPlayer(list, msg) {
     return true;
   }
   list.values.push(newPlayer);
+  someoneAdded = true;
 
   if (list.values.length === list.options.maxPlayers) {
     msg.channel.send(
@@ -233,26 +254,65 @@ function printList(list, channel) {
   }
 }
 
+function whoAllAdded(msg) {
+  if (someoneAdded) {
+    msg.channel.send('Nobody is added yet');
+  }
+  for (const list in aggList) {
+    whoAddedList(list, msg);
+  }
+}
+
+function whoAddedList(list, msg) {
+  if (list.values.length > 0)
+    msg.channel.send(
+      `${list.options.name} players added (${list.values.length}/${list.options.maxPlayers}): ${list.values.map(player => player.name)}`
+    );
+  return;
+}
+
+function isAnyoneAdded() {
+  result = false;
+  for (const list in aggList) {
+    if (list.values.length != 0) {
+      result = true;
+      return result;
+    }
+  }
+  return result;
+}
+
 // Remove helper functions
 
 function clearOtherLists(list, msg) {
   if (list.options.name === 'TST') {
     clearDuplicates(list, wstList, msg);
-    clearDuplicates(list, fortList, msg);
+    clearDuplicates(list, fortList6, msg);
+    clearDuplicates(list, fortList5, msg);
   }
-  if (list.options.name === 'Fort') {
+  if (list.options.name === 'Fort6') {
+    clearDuplicates(list, wstList, msg);
+    clearDuplicates(list, tstList, msg);
+    clearDuplicates(list, fortList5, msg);
+  }
+  if (list.options.name === 'WST') {
+    clearDuplicates(list, fortList6, msg);
+    clearDuplicates(list, fortList5, msg);
+    clearDuplicates(list, tstList, msg);
+  }
+  if (list.options.name === 'Fort5') {
+    clearDuplicates(list, fortList6, msg);
     clearDuplicates(list, wstList, msg);
     clearDuplicates(list, tstList, msg);
   }
-  if (list.options.name === 'WST') {
-    clearDuplicates(list, fortList, msg);
-    clearDuplicates(list, tstList, msg);
-  }
+  someoneAdded = isAnyoneAdded();
+  return;
 }
 
 function clearDuplicates(startedList, targetList, msg) {
   startedList.values.forEach(player => removePlayerId(targetList, player.id));
   printList(targetList, msg.channel);
+  return;
 }
 
 function removePlayerId(list, id) {
@@ -263,15 +323,6 @@ function removePlayerId(list, id) {
     }
   }
   return false;
-}
-
-function printList(list, channel) {
-  if (list.values.length === 0) {
-    channel.send(`${list.options.name} list is empty!`);
-  } else {
-    const newList = list.values.map(player => `<@${player.id}>`);
-    channel.send(`${list.options.name} list updated (${list.values.length}/${list.options.maxPlayers}): ${newList}`);
-  }
 }
 
 function removePlayer(list, msg) {
@@ -294,29 +345,22 @@ function getRandom(list) {
       `Team 4: <@${list.values[6].id}>, <@${list.values[7].id}>\n`
     );
   }
-  if (list.options.name === 'Fort') {
+  if (list.options.name === 'Fort5' || 'Fort6' || 'WST') {
     shuffle(list.values);
-    const nonCaptains = list.values
-      .slice(2, list.values.length)
-      .map(player => `<@${player.id}>`);
-    return (
-      `Team 1 captain: <@${list.values[0].id}>\n` +
-      `Team 2 captain: <@${list.values[1].id}>\n` +
-      `Everyone else: ${nonCaptains}`
-    );
-  }
-  if (list.options.name === 'WST') {
-    shuffle(list.values);
-    const nonCaptains = list.values
-      .slice(2, list.values.length)
-      .map(player => `<@${player.id}>`);
-    return (
-      `Team 1 captain: <@${list.values[0].id}>\n` +
-      `Team 2 captain: <@${list.values[1].id}>\n` +
-      `Everyone else: ${nonCaptains}`
-    );
+    return getDraft(list);
   }
   return '';
+}
+
+function getDraft(list) {
+  const nonCaptains = list.values
+    .slice(2, list.values.length)
+    .map(player => `<@${player.id}>`);
+  return (
+    `Team 1 captain: <@${list.values[0].id}>\n` +
+    `Team 2 captatin: <@${list.values[1].id}>\n` +
+    `Everyone else: ${nonCaptains}`
+  );
 }
 
 function shuffle(list) {
