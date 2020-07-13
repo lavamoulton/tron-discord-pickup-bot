@@ -36,10 +36,6 @@ const wstList = {
 };
 
 const aggList = [wstList, tstList, fortList5, fortList6];
-  
-const someoneAdded = {
-  value: false,
-};
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -50,12 +46,12 @@ client.on('message', msg => {
   // skip message if it meets the following conditions
 
   if (msg.channel.name !== 'pickup') {
-    console.log(`SKIP: Wrong channel`);
+    //console.log(`SKIP: Wrong channel`);
     return;
   }
 
   if (msg.author.id === client.user.id) {
-    console.log(`SKIP: Wrote this one myself`);
+    //console.log(`SKIP: Wrote this one myself`);
     return;
   }
 
@@ -165,12 +161,15 @@ client.on('message', msg => {
   if (msg.channel.guild.name === process.env.TESTING_CHANNEL) {
     if (msg.content.toLowerCase() === '!start tst') {
       startList(tstList, msg);
+      clearOtherLists(tst, msg);
     }
     if (msg.content.toLowerCase() === '!start fort') {
       startList(fortList6, msg);
+      clearOtherLists(fort6, msg);
     }
     if (msg.content.toLowerCase() === '!start wst') {
       startList(wstList, msg);
+      clearOtherLists(wst, msg);
     }
     return;
   }
@@ -212,7 +211,6 @@ function addPlayer(list, msg) {
     return true;
   }
   list.values.push(newPlayer);
-  someoneAdded.value = true;
 
   if (list.values.length === list.options.maxPlayers) {
     msg.channel.send(
@@ -252,11 +250,11 @@ function printList(list, channel) {
 }
 
 function whoAllAdded(msg) {
-  if (!someoneAdded.value) {
+  if (isAnyoneAdded) {
+    aggList.forEach(list => whoAddedList(list, msg));
+  } else {
     msg.channel.send('Nobody is added yet');
-    return;
   }
-  aggList.forEach(list => whoAddedList(list, msg));
   return;
 }
 
@@ -302,7 +300,6 @@ function clearOtherLists(list, msg) {
     clearDuplicates(list, wstList, msg);
     clearDuplicates(list, tstList, msg);
   }
-  someoneAdded.value = isAnyoneAdded();
   return;
 }
 
@@ -355,7 +352,7 @@ function getDraft(list) {
     .map(player => `<@${player.id}>`);
   return (
     `Team 1 captain: <@${list.values[0].id}>\n` +
-    `Team 2 captatin: <@${list.values[1].id}>\n` +
+    `Team 2 captatin: <@${list.values[1].id}>\n` 
     `Everyone else: ${nonCaptains}`
   );
 }
