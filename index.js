@@ -250,7 +250,7 @@ function printList(list, channel) {
 }
 
 function whoAllAdded(msg) {
-  if (isAnyoneAdded) {
+  if (isAnyoneAdded()) {
     aggList.forEach(list => whoAddedList(list, msg));
   } else {
     msg.channel.send('Nobody is added yet');
@@ -267,17 +267,16 @@ function whoAddedList(list, msg) {
 }
 
 function isAnyoneAdded() {
-  console.log("I made it here!");
-  console.log(aggList.length);
-
+  var result = false;
   aggList.forEach(function (list) {
     console.log(list.options.name);
-    console.log(list.length);
+    console.log(list.values.length);
     if (list.values.length != 0) {
-      return true;
+      console.log('This list has someone!');
+      result = true;
     }
   });
-  return false;
+  return result;
 }
 
 // Remove helper functions
