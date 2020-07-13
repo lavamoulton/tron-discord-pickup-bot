@@ -25,7 +25,7 @@ const fortList5 = {
     maxPlayers: 10,
     name: 'Fort5v5'
   }
-}
+};
 
 const wstList = {
   values: [],
@@ -161,15 +161,15 @@ client.on('message', msg => {
   if (msg.channel.guild.name === process.env.TESTING_CHANNEL) {
     if (msg.content.toLowerCase() === '!start tst') {
       startList(tstList, msg);
-      clearOtherLists(tst, msg);
+      clearOtherLists(tstList, msg);
     }
     if (msg.content.toLowerCase() === '!start fort') {
       startList(fortList6, msg);
-      clearOtherLists(fort6, msg);
+      clearOtherLists(fortList6, msg);
     }
     if (msg.content.toLowerCase() === '!start wst') {
       startList(wstList, msg);
-      clearOtherLists(wst, msg);
+      clearOtherLists(wstList, msg);
     }
     return;
   }
