@@ -7,7 +7,7 @@ To run locally, clone the repo, then run `npm install` and `node main.js`. You n
 ### Getting a Discord token (setting up a bot user in Discord)
 There's a good tutorial [here](https://www.writebots.com/discord-bot-token/) (if the link is dead, google it).
 
-### Hosting the bot on Heroku
+### Hosting the bot on Heroku - NOTE: will have to remove dotenv usage to port over to Heroku
 1. Fork this repo in Github (you'll need to create an account).
 2. Create an account on [Heroku](https://herokuapp.com/) if you don't have one already
 3. On your [Heroku Dashboard](https://dashboard.heroku.com/apps), create a new Heroku app
