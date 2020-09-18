@@ -225,7 +225,7 @@ function addPlayer(list, msg) {
     msg.reply(`Can't add you to ${list.options.name} because it's full`);
     return true;
   }
-  const newPlayer = { id: msg.author.id, name: msg.member.displayName timestamp: Date.now};
+  const newPlayer = { id: msg.author.id, name: msg.member.displayName, timestamp: Date.now };
 
   if (list.values.some(player => player.id === newPlayer.id)) {
     msg.reply(`You are already on the ${list.options.name} list`);
