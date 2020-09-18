@@ -106,16 +106,14 @@ client.on('message', msg => {
     return;
   }
   if (msg.content.toLowerCase() === '!add') {
-    if (addPlayer(wstList, msg)) {
-      if (addPlayer(tstList, msg)) {
-        addPlayer(fortList6, msg);
-      }
+    if (addPlayer(tstList, msg)) {
+      addPlayer(fortList6, msg);
     }
     return;
   }
 
   // Utility functionality
-  
+
   if (msg.content.toLowerCase() === '!who') {
     whoAllAdded(msg);
     return;
@@ -221,11 +219,13 @@ function addPlayer(list, msg) {
   /**
    * returns false when list reached maximum nr of players
    */
+  removeInactive(list);
+
   if (list.values.length >= list.options.maxPlayers) {
     msg.reply(`Can't add you to ${list.options.name} because it's full`);
     return true;
   }
-  const newPlayer = { id: msg.author.id, name: msg.member.displayName };
+  const newPlayer = { id: msg.author.id, name: msg.member.displayName timestamp: Date.now};
 
   if (list.values.some(player => player.id === newPlayer.id)) {
     msg.reply(`You are already on the ${list.options.name} list`);
@@ -237,14 +237,24 @@ function addPlayer(list, msg) {
     msg.channel.send(
       `${list.options.name} ready to start!\n${getRandom(list)}`
     );
-    
+
     clearOtherLists(list, msg);
     list.values = [];
     return false;
   }
-  
+
   printList(list, msg.channel);
   return true;
+}
+
+function removeInactive (list){
+  for (player in list.values){
+    if (list.values[player].timestamp + 21600000 < Date.now()) {
+      msg.reply(`<@${list.values[player].id}> has been automatically removed after 6 hours.`);
+      list.values.splice(player, 1);
+    }
+
+  }
 }
 
 // Utility helper functions
