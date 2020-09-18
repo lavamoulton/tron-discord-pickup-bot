@@ -172,7 +172,7 @@ client.on('message', msg => {
       printList(fortList6, msg.channel);
       onfortList6 = true;
     }
-    if (!onTSTList && !onfortList6 && !onfortList6 && !onWSTList && !onCTFList) {
+    if (!onTSTList && !onfortList6 && !onfortList5 && !onfortList6 && !onWSTList && !onCTFList) {
       msg.reply(`You are not on any list`);
     }
     return;
@@ -225,7 +225,7 @@ function addPlayer(list, msg) {
     msg.reply(`Can't add you to ${list.options.name} because it's full`);
     return true;
   }
-  const newPlayer = { id: msg.author.id, name: msg.member.displayName, timestamp: Date.now };
+  const newPlayer = { id: msg.author.id, name: msg.member.displayName, timestamp: Date.now() };
 
   if (list.values.some(player => player.id === newPlayer.id)) {
     msg.reply(`You are already on the ${list.options.name} list`);
