@@ -250,7 +250,7 @@ function addPlayer(list, msg) {
 function removeInactive (list){
   for (player in list.values){
     if (list.values[player].timestamp + 21600000 < Date.now()) {
-      msg.reply(`<@${list.values[player].id}> has been automatically removed after 6 hours.`);
+      msg.channel.send(`<@${list.values[player].id}> has been automatically removed after 6 hours.`);
       list.values.splice(player, 1);
     }
 
