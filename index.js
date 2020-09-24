@@ -63,6 +63,8 @@ client.on('message', msg => {
     return;
   }
 
+  removeInactive(list);
+
   // !add functionality
 
   if (msg.content.toLowerCase() === '!add tst') {
@@ -216,11 +218,9 @@ function startList(list, msg) {
 // Add helper functions
 
 function addPlayer(list, msg) {
-  /**
+    /**
    * returns false when list reached maximum nr of players
    */
-  removeInactive(list);
-
   if (list.values.length >= list.options.maxPlayers) {
     msg.reply(`Can't add you to ${list.options.name} because it's full`);
     return true;
