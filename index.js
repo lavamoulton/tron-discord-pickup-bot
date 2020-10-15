@@ -183,8 +183,11 @@ client.on('message', msg => {
     }
     return;
   }
-
-  removeInactive(list);
+  
+  // Remove Inactive Adders
+  for (list in aggList) {
+    removeInactive(list);
+  }
 });
 
 // Development / Testing helper functions
