@@ -346,13 +346,15 @@ function getRandom(list) {
     shuffle(list.values);
     return getDraft(list);
   }
+  if (list.options.name === 'KOTH') {
+    let kothList = list.values.map(player => `<@${player.id}>`);
+    return `Players: ${kothList}`;
+  }
   return '';
+  
 }
 
-if (list.options.name === 'KOTH') {
-  let kothList = list.values.map(player => `<@${player.id}>`);
-  return `Players: ${kothList}`;
-}
+
 
 function getDraft(list) {
   const nonCaptains = list.values
