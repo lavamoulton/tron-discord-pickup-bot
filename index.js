@@ -185,9 +185,7 @@ client.on('message', msg => {
   }
   
   // Remove Inactive Adders
-  for (list in aggList) {
-    removeInactive(list);
-  }
+  aggList.forEach(list => removeInactive(list));
 });
 
 // Development / Testing helper functions
