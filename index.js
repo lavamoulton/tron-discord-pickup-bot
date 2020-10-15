@@ -347,14 +347,11 @@ function getRandom(list) {
     return getDraft(list);
   }
   if (list.options.name === 'KOTH') {
-    let kothList = list.values.map(player => `<@${player.id}>`);
-    return `Players: ${kothList}`;
+    const newList = list.values.map(player => `<@${player.id}>`);
+    return `Players: ${newList}`;
   }
   return '';
-  
 }
-
-
 
 function getDraft(list) {
   const nonCaptains = list.values
