@@ -11,19 +11,11 @@ const tstList = {
   }
 };
 
-const fortList6 = {
+const fortList = {
   values: [],
   options: {
     maxPlayers: 12,
-    name: 'Fort6v6'
-  }
-};
-
-const fortList5 = {
-  values: [],
-  options: {
-    maxPlayers: 10,
-    name: 'Fort5v5'
+    name: 'Fort'
   }
 };
 
@@ -35,6 +27,14 @@ const wstList = {
   }
 };
 
+const kothList = {
+  values: [],
+  options: {
+    maxPlayers: 8,
+    name: 'KOTH'
+  }
+};
+
 const ctfList = {
   values: [],
   options: {
@@ -43,7 +43,7 @@ const ctfList = {
   }
 };
 
-const aggList = [wstList, tstList, ctfList, fortList5, fortList6];
+const aggList = [wstList, tstList, ctfList, fortList, kothList];
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -63,20 +63,10 @@ client.on('message', msg => {
     return;
   }
 
-  removeInactive(list);
-
   // !add functionality
 
   if (msg.content.toLowerCase() === '!add tst') {
     addPlayer(tstList, msg);
-    return;
-  }
-  if (msg.content.toLowerCase() === '!add fort5') {
-    addPlayer(fortList5, msg);
-    return;
-  }
-  if (msg.content.toLowerCase() === '!add fort6') {
-    addPlayer(fortList6, msg);
     return;
   }
   if (msg.content.toLowerCase() === '!add wst') {
@@ -88,9 +78,11 @@ client.on('message', msg => {
     return;
   }
   if (msg.content.toLowerCase() === '!add fort') {
-    if (addPlayer(fortList5, msg)) {
-      addPlayer(fortList6, msg);
-    }
+    addPlayer(fortList, msg);
+    return;
+  }
+  if (msg.content.toLowerCase() === '!add koth') {
+    addPlayer(kothList, msg);
     return;
   }
   if (msg.content.toLowerCase() === '!add sumo') {
@@ -101,15 +93,13 @@ client.on('message', msg => {
   }
   if (msg.content.toLowerCase() === '!add nowst') {
     if (addPlayer(tstList, msg)) {
-      if (addPlayer(fortList5, msg)) {
-        addPlayer(fortList6, msg);
-      }
+      addPlayer(fortList, msg);
     }
     return;
   }
   if (msg.content.toLowerCase() === '!add') {
     if (addPlayer(tstList, msg)) {
-      addPlayer(fortList6, msg);
+      addPlayer(fortList, msg);
     }
     return;
   }
@@ -132,12 +122,8 @@ client.on('message', msg => {
     removePlayer(tstList, msg);
     return;
   }
-  if (msg.content.toLowerCase() === '!remove fort5') {
-    removePlayer(fortList5, msg);
-    return;
-  }
-  if (msg.content.toLowerCase() === '!remove fort6') {
-    removePlayer(fortList6, msg);
+  if (msg.content.toLowerCase() === '!remove fort') {
+    removePlayer(fortList, msg);
     return;
   }
   if (msg.content.toLowerCase() === '!remove wst') {
@@ -150,10 +136,10 @@ client.on('message', msg => {
   }
   if (msg.content.toLowerCase() === '!remove') {
     let onTSTList = false;
-    let onfortList6 = false;
-    let onfortList5 = false;
+    let onfortList = false;
     let onWSTList = false;
     let onCTFList = false;
+    let onKothList = false;
     if (removePlayerId(wstList, msg.author.id)) {
       printList(wstList, msg.channel);
       onWSTList = true;
@@ -166,15 +152,15 @@ client.on('message', msg => {
       printList(ctfList, msg.channel);
       onCTFList = true;
     }
-    if (removePlayerId(fortList5, msg.author.id)) {
-      printList(fortList5, msg.channel);
+    if (removePlayerId(fortList, msg.author.id)) {
+      printList(fortList, msg.channel);
       onfortList5 = true;
     }
-    if (removePlayerId(fortList6, msg.author.id)) {
-      printList(fortList6, msg.channel);
-      onfortList6 = true;
+    if (removePlayerId(kothList, msg.author.id)) {
+      printList(kothList, msg.channel);
+      onKothList = true;
     }
-    if (!onTSTList && !onfortList6 && !onfortList5 && !onfortList6 && !onWSTList && !onCTFList) {
+    if (!onTSTList && !onfortList && !onKothList && !onWSTList && !onCTFList) {
       msg.reply(`You are not on any list`);
     }
     return;
@@ -187,7 +173,7 @@ client.on('message', msg => {
       startList(tstList, msg);
     }
     if (msg.content.toLowerCase() === '!start fort') {
-      startList(fortList6, msg);
+      startList(fortList, msg);
     }
     if (msg.content.toLowerCase() === '!start wst') {
       startList(wstList, msg);
@@ -197,6 +183,8 @@ client.on('message', msg => {
     }
     return;
   }
+
+  removeInactive(list);
 });
 
 // Development / Testing helper functions
@@ -262,8 +250,7 @@ function removeInactive (list){
 function printHelpMessage(msg) {
   msg.reply('available pickup commands are:\n' +
             `**!add**: Add to all available fort / sumo game modes\n` +
-            `**!add <gamemode>**: Add to a specific game mode (options are: fort5, fort6, tst, wst, or ctf)\n` +
-            `**!add nowst**: Add to fort and tst game modes only\n` +
+            `**!add <gamemode>**: Add to a specific game mode (options are: = fort, tst, wst, or ctf)\n` +
             `**!add sumo**: Add to sumo game modes only\n\n` +
             `**!remove**: Remove from all added game modes\n` +
             `**!remove <gamemode>**: Remove from a specific game mode (options are: fort5, fort6, tst, wst, or ctf)\n\n` +
@@ -354,7 +341,7 @@ function getRandom(list) {
       `Team 4: <@${list.values[6].id}>, <@${list.values[7].id}>\n`
     );
   }
-  if (list.options.name === 'Fort5v5' || 'Fort6v6' || 'WST' || 'CTF') {
+  if (list.options.name === 'Fort' || 'WST' || 'CTF') {
     shuffle(list.values);
     return getDraft(list);
   }
