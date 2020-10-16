@@ -297,19 +297,21 @@ function isAnyoneAdded() {
 }
 
 function updateTopic(channel) {
-  var topicMessage = "No one is added yet.";
+  var topicMessage = `No one is added yet.`;
   var first = true;
   aggList.forEach(function (list) {
     if (list.values.length != 0) {
       if (first) {
-        topicMessage = "Players added: ";
+        topicMessage = `Players added: `;
         first = false;
       }
       topicMessage += `${list.options.name} (${list.values.length}/${list.options.maxPlayers})`
     }
   })
 
-  channel.setTopic(topicMessage);
+  channel.setTopic(topicMessage)
+    .then(newChannel => console.log(`Channel's new topic is ${newChannel.topic}`))
+    .catch(console.error);
 }
 
 // Remove helper functions
