@@ -186,6 +186,7 @@ client.on('message', msg => {
   
   // Remove Inactive Adders
   aggList.forEach(list => removeInactive(list));
+  updateTopic(msg.channel);
 });
 
 // Development / Testing helper functions
@@ -293,6 +294,22 @@ function isAnyoneAdded() {
     }
   });
   return result;
+}
+
+function updateTopic(channel) {
+  var topicMessage = "No one is added yet.";
+  var first = true;
+  aggList.forEach(function (list) {
+    if (list.values.length != 0) {
+      if (first) {
+        topicMessage = "Players added: ";
+        first = false;
+      }
+      topicMessage += `${list.options.name} (${list.values.length}/${list.options.maxPlayers})`
+    }
+  })
+
+  channel.setTopic(topicMessage);
 }
 
 // Remove helper functions
