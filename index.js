@@ -45,11 +45,50 @@ const ctfList = {
 
 const aggList = [wstList, tstList, ctfList, fortList, kothList];
 
+const captainList = [397820413545152524,
+  642772937488859177,
+  184680487405617153,
+  136790348289671168,
+  211287158177136640,
+  518611637788475392,
+  420045113297862656,
+  361681542399000577,
+  299735326241456138,
+  453694084700438540,
+  244132462551236608,
+  592078863950020732,
+  288920244704247808,
+  232190422896738305,
+  133766628524425216,
+  339869517192757250,
+  683808498198511661,
+  462058540211896321,
+  753058182804406343,
+  650611023417442314,
+  198089380714381312,
+  445615595749113856,
+  228860129326399489,
+  181993608923185153,
+  275490810735099904,
+  270191103880331265,
+  240315214837317646,
+  713876966570328125,
+  725607092756414475,
+  716696502239494155,
+  542811868125855754,
+  452885714460213275,
+  357949343317229589,
+  445298849091944448,
+  755291629128122439];
+
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
 client.on('message', msg => {
+
+  // Remove Inactive Adders
+  aggList.forEach(list => removeInactive(list));
 
   // skip message if it meets the following conditions
 
@@ -184,16 +223,16 @@ client.on('message', msg => {
     return;
   }
   
-  // Remove Inactive Adders
-  aggList.forEach(list => removeInactive(list));
-  updateTopic(msg.channel);
+  // updateTopic(msg.channel);
 });
 
 // Development / Testing helper functions
 
 function startList(list, msg) {
+  const player1 = { id: 397820413545152524, name: "" };
   const newPlayer = { id: msg.author.id, name: "" };
-  for (i=0; i<list.options.maxPlayers; i++) {
+  list.values.push(player1);
+  for (i=1; i<list.options.maxPlayers; i++) {
     newPlayer.name = "User" + i.toString();
     list.values.push(newPlayer);
   }
@@ -243,7 +282,6 @@ function removeInactive (list){
       msg.channel.send(`<@${list.values[player].id}> has been automatically removed after 6 hours.`);
       list.values.splice(player, 1);
     }
-
   }
 }
 
@@ -373,12 +411,22 @@ function getRandom(list) {
 }
 
 function getDraft(list) {
-  const nonCaptains = list.values
-    .slice(2, list.values.length)
-    .map(player => `<@${player.id}>`);
+  var counter = 0;
+  const captains = [];
+  const nonCaptains = list.values;
+  while (counter < 2){
+    for (player in list.values){
+      if(captainList.includes(player.id)){
+        captains.push(player);
+        nonCaptains.pop(player);
+        counter++;
+      }
+    }
+  }
+  nonCaptains.map(player => `<@${player.id}>`);
   return (
-    `Team 1 captain: <@${list.values[0].id}>\n` +
-    `Team 2 captain: <@${list.values[1].id}>\n` +
+    `Team 1 captain: <@${captains.values[0].id}>\n` +
+    `Team 2 captain: <@${captains.values[1].id}>\n` +
     `Everyone else: ${nonCaptains}`
   );
 }
