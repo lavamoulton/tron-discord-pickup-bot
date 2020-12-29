@@ -154,7 +154,7 @@ client.on('message', msg => {
           addPlayer(fortautoList, msg);
         }
         else {
-          msg.reply("we couldn't add you to fortauto because we couldn't find the provided auth. Usage: !add fortauto [tron auth username, i.e blah@forums].");
+          msg.reply("we couldn't add you to fortauto because we couldn't find the provided auth in armarankings. Usage: !add fortauto <tron auth username, i.e blah@forums>.");
         }
         return;
       } catch (error) {
