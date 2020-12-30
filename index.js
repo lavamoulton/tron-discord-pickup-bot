@@ -1,7 +1,11 @@
 require('dotenv').config();
+const got = require('got');
+
 
 const Discord = require("discord.js");
 const client = new Discord.Client();
+
+const armarankingsUrl = "https://armarankings.com";
 
 const tstList = {
   values: [],
@@ -43,7 +47,16 @@ const ctfList = {
   }
 };
 
-const aggList = [wstList, tstList, ctfList, fortList, kothList];
+const fortAutoName = 'Fort auto'
+const fortautoList = {
+  values: [],
+  options: {
+    maxPlayers: 12,
+    name: fortAutoName
+  }
+};
+
+const aggList = [wstList, tstList, ctfList, fortList, kothList, fortautoList];
 
 const captainList = [397820413545152524,
   642772937488859177,
@@ -104,39 +117,60 @@ client.on('message', msg => {
 
   // !add functionality
 
-  if (msg.content.toLowerCase() === '!add tst') {
+  const lowerCaseMessage = msg.content.toLowerCase();
+
+  if (lowerCaseMessage === '!add tst') {
     addPlayer(tstList, msg);
     return;
   }
-  if (msg.content.toLowerCase() === '!add wst') {
+  if (lowerCaseMessage === '!add wst') {
     addPlayer(wstList, msg);
     return;
   }
-  if (msg.content.toLowerCase() === '!add ctf') {
+  if (lowerCaseMessage === '!add ctf') {
     addPlayer(ctfList, msg);
     return;
   }
-  if (msg.content.toLowerCase() === '!add fort') {
+  if (lowerCaseMessage === '!add fort') {
     addPlayer(fortList, msg);
     return;
   }
-  if (msg.content.toLowerCase() === '!add koth') {
+  if (lowerCaseMessage === '!add koth') {
     addPlayer(kothList, msg);
     return;
   }
-  if (msg.content.toLowerCase() === '!add sumo') {
+  if (lowerCaseMessage === '!add sumo') {
     if (addPlayer(wstList, msg)) {
       addPlayer(tstList, msg);
     }
     return;
   }
-  if (msg.content.toLowerCase() === '!add nowst') {
+  if (lowerCaseMessage.startsWith('!add fortauto')) {
+    let username = lowerCaseMessage.replace('!add fortauto ', '');
+    (async () => {
+      try {
+        const response = await got(armarankingsUrl + '/api/players/exists?username=' + username + '&match_subtype_id=pickup-fortress1');
+        if (response.body === '1') {
+          addPlayer(fortautoList, msg);
+        }
+        else {
+          msg.reply("we couldn't add you to fortauto because we couldn't find the provided auth in armarankings. Usage: !add fortauto <tron auth username, i.e blah@forums>.");
+        }
+        return;
+      } catch (error) {
+        msg.reply("There's a problem with fortauto. Please contact deso/raph or try again later.");
+        console.log(error);
+        return;
+      }
+    })();
+  }
+  if (lowerCaseMessage === '!add nowst') {
     if (addPlayer(tstList, msg)) {
       addPlayer(fortList, msg);
     }
     return;
   }
-  if (msg.content.toLowerCase() === '!add') {
+  if (lowerCaseMessage === '!add') {
     if (addPlayer(tstList, msg)) {
       addPlayer(fortList, msg);
     }
@@ -145,40 +179,41 @@ client.on('message', msg => {
 
   // Utility functionality
 
-  if (msg.content.toLowerCase() === '!who') {
+  if (lowerCaseMessage === '!who') {
     whoAllAdded(msg);
     return;
   }
 
-  if (msg.content.toLowerCase() === '!help') {
+  if (lowerCaseMessage === '!help') {
     printHelpMessage(msg);
     return;
   }
 
   // !remove functionality
 
-  if (msg.content.toLowerCase() === '!remove tst') {
+  if (lowerCaseMessage === '!remove tst') {
     removePlayer(tstList, msg);
     return;
   }
-  if (msg.content.toLowerCase() === '!remove fort') {
+  if (lowerCaseMessage === '!remove fort') {
     removePlayer(fortList, msg);
     return;
   }
-  if (msg.content.toLowerCase() === '!remove wst') {
+  if (lowerCaseMessage === '!remove wst') {
     removePlayer(wstList, msg);
     return;
   }
-  if (msg.content.toLowerCase() === '!remove ctf') {
+  if (lowerCaseMessage === '!remove ctf') {
     removePlayer(ctfList, msg);
     return;
   }
-  if (msg.content.toLowerCase() === '!remove') {
+  if (lowerCaseMessage === '!remove') {
     let onTSTList = false;
     let onfortList = false;
     let onWSTList = false;
     let onCTFList = false;
     let onKothList = false;
+    let onfortautoList = false;
     if (removePlayerId(wstList, msg.author.id)) {
       printList(wstList, msg.channel);
       onWSTList = true;
@@ -199,7 +234,11 @@ client.on('message', msg => {
       printList(kothList, msg.channel);
       onKothList = true;
     }
-    if (!onTSTList && !onfortList && !onKothList && !onWSTList && !onCTFList) {
+    if (removePlayerId(fortautoList, msg.author.id)) {
+      printList(fortautoList, msg.channel);
+      onfortautoList = true;
+    }
+    if (!onTSTList && !onfortList && !onKothList && !onWSTList && !onCTFList && !onfortautoList) {
       msg.reply(`You are not on any list`);
     }
     return;
@@ -208,16 +247,16 @@ client.on('message', msg => {
   // Development / Testing functionality
 
   if (msg.channel.guild.name === process.env.TESTING_CHANNEL) {
-    if (msg.content.toLowerCase() === '!start tst') {
+    if (lowerCaseMessage === '!start tst') {
       startList(tstList, msg);
     }
-    if (msg.content.toLowerCase() === '!start fort') {
+    if (lowerCaseMessage === '!start fort') {
       startList(fortList, msg);
     }
-    if (msg.content.toLowerCase() === '!start wst') {
+    if (lowerCaseMessage === '!start wst') {
       startList(wstList, msg);
     }
-    if (msg.content.toLowerCase() === '!start ctf') {
+    if (lowerCaseMessage === '!start ctf') {
       startList(ctfList, msg);
     }
     return;
@@ -256,6 +295,10 @@ function addPlayer(list, msg) {
   }
   const newPlayer = { id: msg.author.id, name: msg.member.displayName, timestamp: Date.now() };
 
+  if (list.options.name === fortAutoName) {
+    newPlayer['auth'] = msg.content.replace('!add fortauto ', '');
+  }
+
   if (list.values.some(player => player.id === newPlayer.id)) {
     msg.reply(`You are already on the ${list.options.name} list`);
     return true;
@@ -263,9 +306,36 @@ function addPlayer(list, msg) {
   list.values.push(newPlayer);
 
   if (list.values.length === list.options.maxPlayers) {
-    msg.channel.send(
-      `${list.options.name} ready to start!\n${getRandom(list)}`
-    );
+    if (list.options.name === fortAutoName) {
+      const players = list.values.map(item => item.auth);
+      (async () => {
+        try {
+          const {body} = await got.post(armarankingsUrl + '/api/generate-teams', {
+            json: {
+              players: players
+            },
+            responseType: 'json'
+          });
+
+          msg.channel.send(
+            list.options.name + " ready to start!\n"
+            + "**Team 1**: " + body.team_1.players.join(', ') + "\n"
+            + "**Team 1 captain**: " + body.team_1.captain + "\n"
+            + "**Team 2**: " + body.team_2.players.join(', ') + "\n"
+            + "**Team 2 captain**: " + body.team_2.captain + "\n"
+          );
+        } catch(error) {
+          msg.channel.send("There's a problem with fortauto. Please contact deso/raph or try again later.")
+          console.log(error);
+        }
+      })();
+    }
+
+    else {
+      msg.channel.send(
+        `${list.options.name} ready to start!\n${getRandom(list)}` 
+      );
+    }
 
     clearOtherLists(list, msg);
     list.values = [];
@@ -291,6 +361,7 @@ function printHelpMessage(msg) {
   msg.reply('available pickup commands are:\n' +
             `**!add**: Add to all available fort / sumo game modes\n` +
             `**!add <gamemode>**: Add to a specific game mode (options are: = fort, tst, wst, or ctf)\n` +
+            `**!add fortauto <tron auth>**: Add fort with auto team generation\n` +
             `**!add sumo**: Add to sumo game modes only\n\n` +
             `**!remove**: Remove from all added game modes\n` +
             `**!remove <gamemode>**: Remove from a specific game mode (options are: fort5, fort6, tst, wst, or ctf)\n\n` +

@@ -19,7 +19,8 @@
   "homepage": "https://github.com/lavamoulton/tron-discord-pickup-bot",
   "dependencies": {
     "discord.js": "^11.6.4",
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "got": "^11.8.1"
   },
   "engines": {
     "node": "12.x"
