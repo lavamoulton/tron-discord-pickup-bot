@@ -51,7 +51,7 @@ const fortAutoName = 'Fort auto'
 const fortautoList = {
   values: [],
   options: {
-    maxPlayers: 10,
+    maxPlayers: 12,
     name: fortAutoName
   }
 };
