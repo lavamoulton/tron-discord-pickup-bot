@@ -5,7 +5,7 @@ const got = require('got');
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
-const armarankingsUrl = "https://armarankings-test-ocljhnul6a-uk.a.run.app";
+const armarankingsUrl = "https://armarankings.com";
 
 const tstList = {
   values: [],
