@@ -47,11 +47,12 @@ const ctfList = {
   }
 };
 
+const fortAutoName = 'Fort auto'
 const fortautoList = {
   values: [],
   options: {
     maxPlayers: 10,
-    name: 'Fort Auto'
+    name: fortAutoName
   }
 };
 
@@ -144,7 +145,6 @@ client.on('message', msg => {
     }
     return;
   }
-  // !add fortauto rapH123@forums
   if (lowerCaseMessage.startsWith('!add fortauto')) {
     let username = lowerCaseMessage.replace('!add fortauto ', '');
     (async () => {
@@ -295,7 +295,7 @@ function addPlayer(list, msg) {
   }
   const newPlayer = { id: msg.author.id, name: msg.member.displayName, timestamp: Date.now() };
 
-  if (list.options.name === 'Fort Auto') {
+  if (list.options.name === fortAutoName) {
     newPlayer['auth'] = msg.content.replace('!add fortauto ', '');
   }
 
@@ -306,7 +306,7 @@ function addPlayer(list, msg) {
   list.values.push(newPlayer);
 
   if (list.values.length === list.options.maxPlayers) {
-    if (list.options.name === 'Fort Auto') {
+    if (list.options.name === fortAutoName) {
       const players = list.values.map(item => item.auth);
       (async () => {
         try {
