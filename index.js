@@ -56,6 +56,8 @@ const fortautoList = {
   }
 };
 
+let discordIdToTronAuth = {};
+
 const aggList = [wstList, tstList, ctfList, fortList, kothList, fortautoList];
 
 const captainList = ["397820413545152524",
@@ -146,15 +148,27 @@ client.on('message', msg => {
     return;
   }
   if (lowerCaseMessage.startsWith('!add fortauto')) {
-    let username = lowerCaseMessage.replace('!add fortauto ', '');
+    let username = lowerCaseMessage.replace('!add fortauto', '');
+    username = username.trim();
+    if (username === '') {
+      if (discordIdToTronAuth[msg.author.id]) {
+        username = discordIdToTronAuth[msg.author.id]
+      }
+      else {
+        msg.reply("We were unable to find a tron username associated with your discord ID. Please add again with your tron username provided: `!add fortauto <tron auth username>`.");
+        return;
+      }
+    }
+
     (async () => {
       try {
         const response = await got(armarankingsUrl + '/api/players/exists?username=' + username + '&match_subtype_id=pickup-fortress-all');
         if (response.body === '1') {
+          discordIdToTronAuth[msg.author.id] = username;
           addPlayer(fortautoList, msg);
         }
         else {
-          msg.reply("we couldn't add you to fortauto because we couldn't find the provided auth in armarankings. Usage: !add fortauto <tron auth username, i.e blah@forums>.");
+          msg.reply("We couldn't add you to fortauto because we couldn't find the provided auth in armarankings. Usage: `!add fortauto <tron auth username, i.e blah@forums>`.");
         }
         return;
       } catch (error) {
@@ -296,7 +310,7 @@ function addPlayer(list, msg) {
   const newPlayer = { id: msg.author.id, name: msg.member.displayName, timestamp: Date.now() };
 
   if (list.options.name === fortAutoName) {
-    newPlayer['auth'] = msg.content.replace('!add fortauto ', '');
+    newPlayer['auth'] = discordIdToTronAuth[msg.author.id];
   }
 
   if (list.values.some(player => player.id === newPlayer.id)) {
@@ -308,6 +322,7 @@ function addPlayer(list, msg) {
   if (list.values.length === list.options.maxPlayers) {
     if (list.options.name === fortAutoName) {
       const players = list.values.map(item => item.auth);
+
       (async () => {
         try {
           const {body} = await got.post(armarankingsUrl + '/api/generate-teams', {
