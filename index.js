@@ -47,7 +47,7 @@ const ctfList = {
   }
 };
 
-const fortAutoName = 'Fort auto'
+const fortAutoName = 'Fort AUTO'
 const fortautoList = {
   values: [],
   options: {
@@ -58,41 +58,41 @@ const fortautoList = {
 
 const aggList = [wstList, tstList, ctfList, fortList, kothList, fortautoList];
 
-const captainList = [397820413545152524,
-  642772937488859177,
-  184680487405617153,
-  136790348289671168,
-  211287158177136640,
-  518611637788475392,
-  420045113297862656,
-  361681542399000577,
-  299735326241456138,
-  453694084700438540,
-  244132462551236608,
-  592078863950020732,
-  288920244704247808,
-  232190422896738305,
-  133766628524425216,
-  339869517192757250,
-  683808498198511661,
-  462058540211896321,
-  753058182804406343,
-  650611023417442314,
-  198089380714381312,
-  445615595749113856,
-  228860129326399489,
-  181993608923185153,
-  275490810735099904,
-  270191103880331265,
-  240315214837317646,
-  713876966570328125,
-  725607092756414475,
-  716696502239494155,
-  542811868125855754,
-  452885714460213275,
-  357949343317229589,
-  445298849091944448,
-  755291629128122439];
+const captainList = ["397820413545152524",
+  "642772937488859177",
+  "184680487405617153",
+  "136790348289671168",
+  "211287158177136640",
+  "518611637788475392",
+  "420045113297862656",
+  "361681542399000577",
+  "299735326241456138",
+  "453694084700438540",
+  "244132462551236608",
+  "592078863950020732",
+  "288920244704247808",
+  "232190422896738305",
+  "133766628524425216",
+  "339869517192757250",
+  "683808498198511661",
+  "462058540211896321",
+  "753058182804406343",
+  "650611023417442314",
+  "198089380714381312",
+  "445615595749113856",
+  "228860129326399489",
+  "181993608923185153",
+  "275490810735099904",
+  "270191103880331265",
+  "240315214837317646",
+  "713876966570328125",
+  "725607092756414475",
+  "716696502239494155",
+  "542811868125855754",
+  "452885714460213275",
+  "357949343317229589",
+  "445298849091944448",
+  "755291629128122439"];
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -149,7 +149,7 @@ client.on('message', msg => {
     let username = lowerCaseMessage.replace('!add fortauto ', '');
     (async () => {
       try {
-        const response = await got(armarankingsUrl + '/api/players/exists?username=' + username + '&match_subtype_id=pickup-fortress1');
+        const response = await got(armarankingsUrl + '/api/players/exists?username=' + username + '&match_subtype_id=pickup-fortress-all');
         if (response.body === '1') {
           addPlayer(fortautoList, msg);
         }
@@ -317,6 +317,10 @@ function addPlayer(list, msg) {
             responseType: 'json'
           });
 
+          if (body.error) {
+            throw(body.error);
+          }
+
           msg.channel.send(
             list.options.name + " ready to start!\n"
             + "**Team 1**: " + body.team_1.players.join(', ') + "\n"
@@ -325,8 +329,13 @@ function addPlayer(list, msg) {
             + "**Team 2 captain**: " + body.team_2.captain + "\n"
           );
         } catch(error) {
-          msg.channel.send("There's a problem with fortauto. Please contact deso/raph or try again later.")
+          msg.channel.send("There's a problem with fortauto. Please contact deso/raph or try again later. Falling back to manual mode: \n" + getRandom(list));
+
           console.log(error);
+        } finally {
+          clearOtherLists(list, msg);
+          list.values = [];
+          return false
         }
       })();
     }
@@ -335,11 +344,11 @@ function addPlayer(list, msg) {
       msg.channel.send(
         `${list.options.name} ready to start!\n${getRandom(list)}` 
       );
-    }
 
-    clearOtherLists(list, msg);
-    list.values = [];
-    return false;
+      clearOtherLists(list, msg);
+      list.values = [];
+      return false;
+    }
   }
 
   printList(list, msg.channel);
@@ -470,7 +479,7 @@ function getRandom(list) {
       `Team 4: <@${list.values[6].id}>, <@${list.values[7].id}>\n`
     );
   }
-  if (list.options.name === 'Fort' || 'WST' || 'CTF') {
+  if (list.options.name === 'Fort' || 'WST' || 'CTF' || 'Fort AUTO') {
     shuffle(list.values);
     return getDraft(list);
   }
@@ -482,22 +491,24 @@ function getRandom(list) {
 }
 
 function getDraft(list) {
-  var counter = 0;
   const captains = [];
   const nonCaptains = list.values;
-  while (counter < 2){
-    for (player in list.values){
-      if(captainList.includes(player.id)){
+  list.values.forEach(player => {
+    if (captains.length < 2) {
+      if (captainList.includes(player.id)) {
         captains.push(player);
-        nonCaptains.pop(player);
-        counter++;
       }
     }
-  }
+  });
+
+  captains.forEach(captain => {
+    nonCaptains.pop(captain);
+  });
+  
   nonCaptains.map(player => `<@${player.id}>`);
   return (
-    `Team 1 captain: <@${captains.values[0].id}>\n` +
-    `Team 2 captain: <@${captains.values[1].id}>\n` +
+    `Team 1 captain: <@${captains[0].id}>\n` +
+    `Team 2 captain: <@${captains[1].id}>\n` +
     `Everyone else: ${nonCaptains}`
   );
 }
