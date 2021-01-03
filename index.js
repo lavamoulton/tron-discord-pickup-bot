@@ -338,10 +338,10 @@ function addPlayer(list, msg) {
 
           msg.channel.send(
             list.options.name + " ready to start!\n"
-            + "**Team 1**: " + body.team_1.players.join(', ') + "\n"
-            + "**Team 1 captain**: " + body.team_1.captain + "\n"
-            + "**Team 2**: " + body.team_2.players.join(', ') + "\n"
-            + "**Team 2 captain**: " + body.team_2.captain + "\n"
+            + "**Team gold** :cycle2:: " + body.team_1.players.join(', ') + "\n"
+            + "**Team gold captain**: " + body.team_1.captain + "\n"
+            + "**Team blue** :cycle1:: " + body.team_2.players.join(', ') + "\n"
+            + "**Team blue captain**: " + body.team_2.captain + "\n"
           );
         } catch(error) {
           msg.channel.send("There's a problem with fortauto. Please contact deso/raph or try again later. Falling back to manual mode: \n" + getRandom(list));
