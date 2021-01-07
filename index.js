@@ -519,7 +519,10 @@ function getDraft(list) {
   });
 
   captains.forEach(captain => {
-    nonCaptains.pop(captain);
+    let index = nonCaptains.indexOf(captain);
+    if (index !== -1) {
+      nonCaptains.splice(index, 1);
+    }
   });
   
   nonCaptains = nonCaptains.map(player => `<@${player.id}>`);
