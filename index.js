@@ -60,7 +60,8 @@ let discordIdToTronAuth = {};
 
 const aggList = [wstList, tstList, ctfList, fortList, kothList, fortautoList];
 
-const captainList = ["397820413545152524",
+const captainList = [
+  "397820413545152524",
   "642772937488859177",
   "184680487405617153",
   "136790348289671168",
@@ -94,7 +95,8 @@ const captainList = ["397820413545152524",
   "452885714460213275",
   "357949343317229589",
   "445298849091944448",
-  "755291629128122439"];
+  "755291629128122439"
+];
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -338,9 +340,9 @@ function addPlayer(list, msg) {
 
           msg.channel.send(
             list.options.name + " ready to start!\n"
-            + "**Team gold** :cycle2:: " + body.team_1.players.join(', ') + "\n"
+            + "**Team gold**: " + body.team_1.players.join(', ') + "\n"
             + "**Team gold captain**: " + body.team_1.captain + "\n"
-            + "**Team blue** :cycle1:: " + body.team_2.players.join(', ') + "\n"
+            + "**Team blue**: " + body.team_2.players.join(', ') + "\n"
             + "**Team blue captain**: " + body.team_2.captain + "\n"
           );
         } catch(error) {
@@ -507,7 +509,7 @@ function getRandom(list) {
 
 function getDraft(list) {
   const captains = [];
-  const nonCaptains = list.values;
+  let nonCaptains = list.values;
   list.values.forEach(player => {
     if (captains.length < 2) {
       if (captainList.includes(player.id)) {
@@ -520,7 +522,8 @@ function getDraft(list) {
     nonCaptains.pop(captain);
   });
   
-  nonCaptains.map(player => `<@${player.id}>`);
+  nonCaptains = nonCaptains.map(player => `<@${player.id}>`);
+
   return (
     `Team 1 captain: <@${captains[0].id}>\n` +
     `Team 2 captain: <@${captains[1].id}>\n` +
