@@ -57,6 +57,7 @@ const fortautoList = {
 };
 
 let discordIdToTronAuth = {};
+let tronAuthToDiscordId = {};
 
 const aggList = [wstList, tstList, ctfList, fortList, kothList, fortautoList];
 
@@ -150,35 +151,8 @@ client.on('message', msg => {
     return;
   }
   if (lowerCaseMessage.startsWith('!add fortauto')) {
-    let username = lowerCaseMessage.replace('!add fortauto', '');
-    username = username.trim();
-    if (username === '') {
-      if (discordIdToTronAuth[msg.author.id]) {
-        username = discordIdToTronAuth[msg.author.id]
-      }
-      else {
-        msg.reply("We were unable to find a tron username associated with your discord ID. Please add again with your tron username provided: `!add fortauto <tron auth username>`.");
-        return;
-      }
-    }
-
-    (async () => {
-      try {
-        const response = await got(armarankingsUrl + '/api/players/exists?username=' + username + '&match_subtype_id=pickup-fortress-all');
-        if (response.body === '1') {
-          discordIdToTronAuth[msg.author.id] = username;
-          addPlayer(fortautoList, msg);
-        }
-        else {
-          msg.reply("We couldn't add you to fortauto because we couldn't find the provided auth in armarankings. Usage: `!add fortauto <tron auth username, i.e blah@forums>`.");
-        }
-        return;
-      } catch (error) {
-        msg.reply("There's a problem with fortauto. Please contact deso/raph or try again later.");
-        console.log(error);
-        return;
-      }
-    })();
+    addPlayer(fortautoList, msg);
+    return;
   }
   if (lowerCaseMessage === '!add nowst') {
     if (addPlayer(tstList, msg)) {
@@ -309,55 +283,115 @@ function addPlayer(list, msg) {
     msg.reply(`Can't add you to ${list.options.name} because it's full`);
     return true;
   }
+  
   const newPlayer = { id: msg.author.id, name: msg.member.displayName, timestamp: Date.now() };
-
-  if (list.options.name === fortAutoName) {
-    newPlayer['auth'] = discordIdToTronAuth[msg.author.id];
-  }
 
   if (list.values.some(player => player.id === newPlayer.id)) {
     msg.reply(`You are already on the ${list.options.name} list`);
     return true;
   }
-  list.values.push(newPlayer);
 
-  if (list.values.length === list.options.maxPlayers) {
-    if (list.options.name === fortAutoName) {
-      const players = list.values.map(item => item.auth);
+  // Special stuff for fortauto
+  if (list.options.name === fortAutoName) {
+    let username = msg.content.toLowerCase().replace('!add fortauto', '');
+    username = username.trim();
 
-      (async () => {
-        try {
-          const {body} = await got.post(armarankingsUrl + '/api/generate-teams', {
-            json: {
-              players: players
-            },
-            responseType: 'json'
-          });
-
-          if (body.error) {
-            throw(body.error);
-          }
-
-          msg.channel.send(
-            list.options.name + " ready to start!\n"
-            + "**Team gold**: " + body.team_1.players.join(', ') + "\n"
-            + "**Team gold captain**: " + body.team_1.captain + "\n"
-            + "**Team blue**: " + body.team_2.players.join(', ') + "\n"
-            + "**Team blue captain**: " + body.team_2.captain + "\n"
-          );
-        } catch(error) {
-          msg.channel.send("There's a problem with fortauto. Please contact deso/raph or try again later. Falling back to manual mode: \n" + getRandom(list));
-
-          console.log(error);
-        } finally {
-          clearOtherLists(list, msg);
-          list.values = [];
-          return false
-        }
-      })();
+    if (username === '') {
+      if (discordIdToTronAuth[msg.author.id]) {
+        username = discordIdToTronAuth[msg.author.id]
+      }
+      else {
+        msg.reply("We were unable to find a tron username associated with your discord ID. Please add again with your tron username provided: `!add fortauto <tron auth username>`.");
+        return;
+      }
     }
 
-    else {
+    let usernames = list.values.map(item => item.auth);
+    if (usernames.includes(username)) {
+      if (tronAuthToDiscordId[username]) {
+        msg.reply("It looks like <@" + tronAuthToDiscordId[username] + "> is already signed up with that tron username. Please use another or have them add again with something else.");
+      }
+      else {
+        msg.reply("It looks like someone is already signed up with that tron username. Please use another or have them add again with something else.");
+      }
+      return;
+    }
+
+    (async () => {
+      try {
+        const response = await got(armarankingsUrl + '/api/players/exists?username=' + username + '&match_subtype_id=pickup-fortress-all');
+        if (response.body === '1') {
+          discordIdToTronAuth[msg.author.id] = username;
+          tronAuthToDiscordId[username] = msg.author.id;
+          newPlayer['auth'] = username;
+          list.values.push(newPlayer);
+          if (list.values.length === list.options.maxPlayers) {
+            const players = list.values.map(item => item.auth);
+            (async () => {
+              try {
+                const {body} = await got.post(armarankingsUrl + '/api/generate-teams', {
+                  json: {
+                    players: players
+                  },
+                  responseType: 'json'
+                });
+
+                if (body.error) {
+                  throw(body.error);
+                }
+
+                players_and_discord_ids = [];
+
+                team_1 = body.team_1.players.map(player => {
+                  return "<@" + tronAuthToDiscordId[player.toLowerCase()] + "> (" + player + ")";
+                });
+
+                team_2 = body.team_2.players.map(player => {
+                  return "<@" + tronAuthToDiscordId[player.toLowerCase()] + "> (" + player + ")";
+                });
+
+                msg.channel.send(
+                  list.options.name + " ready to start!\n"
+                  + "**Team gold**: " + team_1.join(', ') + "\n"
+                  + "**Team gold captain**: <@" + tronAuthToDiscordId[body.team_1.captain.toLowerCase()] + "> (" + body.team_1.captain + ")\n"
+                  + "**Team blue**: " + team_2.join(', ') + "\n"
+                  + "**Team blue captain**: <@" + tronAuthToDiscordId[body.team_2.captain.toLowerCase()] + "> (" + body.team_2.captain + ")\n"
+                );
+                return;
+              } catch(error) {
+                msg.channel.send("There's a problem with fortauto. Please contact deso/raph or try again later. Falling back to manual mode: \n" + getRandom(list));
+                console.log(error);
+                return;
+              } finally {
+                clearOtherLists(list, msg);
+                list.values = [];
+                return;
+              }
+            })();
+          }
+
+          else {
+            printList(list, msg.channel);
+            return;
+          }
+        }
+
+        else {
+          msg.reply("We couldn't add you to fortauto because we couldn't find the provided auth in armarankings. Usage: `!add fortauto <tron auth username, i.e blah@forums>`.");
+        }
+        return;
+      } catch (error) {
+        msg.reply("There's a problem with fortauto. Please contact deso/raph or try again later.");
+        console.log(error);
+        return;
+      }
+    })();
+  }
+
+  else {
+    list.values.push(newPlayer);
+
+    if (list.values.length === list.options.maxPlayers) {
       msg.channel.send(
         `${list.options.name} ready to start!\n${getRandom(list)}` 
       );
@@ -366,10 +400,10 @@ function addPlayer(list, msg) {
       list.values = [];
       return false;
     }
-  }
 
-  printList(list, msg.channel);
-  return true;
+    printList(list, msg.channel);
+    return true;
+  }
 }
 
 function removeInactive (list){
