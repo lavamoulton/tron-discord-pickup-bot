@@ -4,7 +4,7 @@
   "description": "discord-pickup-bot",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "node index.js"
   },
   "repository": {
@@ -20,9 +20,13 @@
   "dependencies": {
     "discord.js": "^11.6.4",
     "dotenv": "^8.2.0",
-    "got": "^11.8.1"
+    "got": "^11.8.1",
+    "yargs": "^16.2.0"
   },
   "engines": {
     "node": "12.x"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
   }
 }
