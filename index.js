@@ -1,8 +1,11 @@
 require('dotenv').config();
 const got = require('got');
 
-
 const Discord = require("discord.js");
+
+const parser = require('./commands.js')
+const { CommandValidationError } = require('./exceptions');
+
 const client = new Discord.Client();
 
 const armarankingsUrl = "https://armarankings.com";
@@ -101,17 +104,20 @@ const captainList = [
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
+
+  // Remove inactive or expired Adders
+  const CHECK_ENTRY_STATUS_INTERVAL_IN_SECONDS = 30;
+  var interval = setInterval (function () {
+    aggList.forEach(list => removeInactive(list));
+  }, CHECK_ENTRY_STATUS_INTERVAL_IN_SECONDS * 1000);
+
 });
 
 client.on('message', msg => {
-
-  // Remove Inactive Adders
-  aggList.forEach(list => removeInactive(list));
-
   // skip message if it meets the following conditions
 
   if (msg.channel.name !== 'pickup') {
-    //console.log(`SKIP: Wrong channel`);
+    console.log(`SKIP: Wrong channel`);
     return;
   }
 
@@ -120,118 +126,101 @@ client.on('message', msg => {
     return;
   }
 
-  // !add functionality
-
   const lowerCaseMessage = msg.content.toLowerCase();
-
-  if (lowerCaseMessage === '!add tst') {
-    addPlayer(tstList, msg);
-    return;
-  }
-  if (lowerCaseMessage === '!add wst') {
-    addPlayer(wstList, msg);
-    return;
-  }
-  if (lowerCaseMessage === '!add ctf') {
-    addPlayer(ctfList, msg);
-    return;
-  }
-  if (lowerCaseMessage === '!add fort') {
-    addPlayer(fortList, msg);
-    return;
-  }
-  if (lowerCaseMessage === '!add koth') {
-    addPlayer(kothList, msg);
-    return;
-  }
-  if (lowerCaseMessage === '!add sumo') {
-    if (addPlayer(wstList, msg)) {
-      addPlayer(tstList, msg);
+  let parsedContent = null;
+  try {
+    parsedContent = parser.parse(lowerCaseMessage) || null;
+  } catch (err) {
+    if (err instanceof CommandValidationError) {
+      msg.reply(err.message);
+    } else {
+      console.error(err);
     }
-    return;
-  }
-  if (lowerCaseMessage.startsWith('!add fortauto')) {
-    addPlayer(fortautoList, msg);
-    return;
-  }
-  if (lowerCaseMessage === '!add nowst') {
-    if (addPlayer(tstList, msg)) {
-      addPlayer(fortList, msg);
+  } finally {
+    if (parsedContent == null) {
+      return;
     }
-    return;
-  }
-  if (lowerCaseMessage === '!add') {
-    if (addPlayer(tstList, msg)) {
-      addPlayer(fortList, msg);
-    }
-    return;
   }
 
-  // Utility functionality
+  const commandType = parsedContent.commandType;
+  if ("add" === commandType) {   // !add functionality
+    const gamesToAdd = [];
+    const game = parsedContent.options.game;
+    if ('tst' === game) {
+      gamesToAdd.push(tstList);
+    } else if ('wst' === game) {
+      gamesToAdd.push(wstList);
+    } else if ('ctf' === game) {
+      gamesToAdd.push(ctfList);
+    } else if ('fort' === game) {
+      gamesToAdd.push(fortList);
+    } else if ('koth' === game) {
+      gamesToAdd.push(kothList);
+    } else if ('sumo' === game) {
+      gamesToAdd.push(wstList);
+      gamesToAdd.push(tstList);
+    } else if ('fortauto' === game) {
+      gamesToAdd.push(fortautoList);
+    } else if ('nowst' === game || null == game) {
+      gamesToAdd.push(tstList);
+      gamesToAdd.push(fortList);
+    }
 
-  if (lowerCaseMessage === '!who') {
+    var playerAdded;
+    for (var i = 0; i < gamesToAdd.length; i++) {
+      playerAdded = addPlayer(gamesToAdd[i], msg, parsedContent.options);
+      if (!playerAdded) {
+        break;
+      }
+    }
+
+  } else if ('who' === commandType) {
     whoAllAdded(msg);
-    return;
-  }
-
-  if (lowerCaseMessage === '!help') {
+  } else if ('help' === commandType) {
     printHelpMessage(msg);
-    return;
-  }
+  } else if ('remove' === commandType) { // !remove functionality
+    const gamesToRemove = [];
+    const game = parsedContent.options.game;
+    if ('tst' === game) {
+      gamesToRemove.push(tstList);
+    } else if ('wst' === game) {
+      gamesToRemove.push(wstList);
+    } else if ('ctf' === game) {
+      gamesToRemove.push(ctfList);
+    } else if ('fort' === game) {
+      gamesToRemove.push(fortList);
+    } else if ('koth' === game) {
+      gamesToRemove.push(kothList);
+    } else if ('fortauto' === game) {
+      gamesToRemove.push(fortautoList);
+    } else if (null === game) {
+      // remove all
+      gamesToRemove.push(tstList);
+      gamesToRemove.push(wstList);
+      gamesToRemove.push(ctfList);
+      gamesToRemove.push(fortList);
+      gamesToRemove.push(kothList);
+      gamesToRemove.push(fortautoList);
+    }
 
-  // !remove functionality
+    var numGamesRemoved = 0;
+    gamesToRemove.forEach(function (gameList) {
+      if (removePlayer(gameList, msg)) {
+        numGamesRemoved++;
+      }
+    });
 
-  if (lowerCaseMessage === '!remove tst') {
-    removePlayer(tstList, msg);
-    return;
-  }
-  if (lowerCaseMessage === '!remove fort') {
-    removePlayer(fortList, msg);
-    return;
-  }
-  if (lowerCaseMessage === '!remove wst') {
-    removePlayer(wstList, msg);
-    return;
-  }
-  if (lowerCaseMessage === '!remove ctf') {
-    removePlayer(ctfList, msg);
-    return;
-  }
-  if (lowerCaseMessage === '!remove') {
-    let onTSTList = false;
-    let onfortList = false;
-    let onWSTList = false;
-    let onCTFList = false;
-    let onKothList = false;
-    let onfortautoList = false;
-    if (removePlayerId(wstList, msg.author.id)) {
-      printList(wstList, msg.channel);
-      onWSTList = true;
+    if (numGamesRemoved == 0) {
+      if (gamesToRemove.length == 1) {
+        var gameList = gamesToRemove[0];
+        msg.reply(`You are not on the ${gameList.options.name} list`);
+      } else if (gamesToRemove.length > 1) {
+        msg.reply(`You are not on any list`);
+      }
     }
-    if (removePlayerId(tstList, msg.author.id)) {
-      printList(tstList, msg.channel);
-      onTSTList = true;
-    }
-    if (removePlayerId(ctfList, msg.author.id)) {
-      printList(ctfList, msg.channel);
-      onCTFList = true;
-    }
-    if (removePlayerId(fortList, msg.author.id)) {
-      printList(fortList, msg.channel);
-      onfortList5 = true;
-    }
-    if (removePlayerId(kothList, msg.author.id)) {
-      printList(kothList, msg.channel);
-      onKothList = true;
-    }
-    if (removePlayerId(fortautoList, msg.author.id)) {
-      printList(fortautoList, msg.channel);
-      onfortautoList = true;
-    }
-    if (!onTSTList && !onfortList && !onKothList && !onWSTList && !onCTFList && !onfortautoList) {
-      msg.reply(`You are not on any list`);
-    }
-    return;
+  } else if ('autoremove' === commandType) {
+    var removeInMinutes = parsedContent.options.removeInMinutes;
+    updateAutoRemoveEntries(removeInMinutes, msg);
   }
 
   // Development / Testing functionality
@@ -275,7 +264,7 @@ function startList(list, msg) {
 
 // Add helper functions
 
-function addPlayer(list, msg) {
+function addPlayer(list, msg, gameOptions) {
     /**
    * returns false when list reached maximum nr of players
    */
@@ -284,7 +273,10 @@ function addPlayer(list, msg) {
     return true;
   }
   
-  const newPlayer = { id: msg.author.id, name: msg.member.displayName, timestamp: Date.now() };
+  const now = new Date();
+  const expires = getDateFromNowInMinutes(gameOptions.removeInMinutes);
+
+  const newPlayer = { id: msg.author.id, name: msg.member.displayName, timestamp: now, entryExpires: expires };
 
   if (list.values.some(player => player.id === newPlayer.id)) {
     msg.reply(`You are already on the ${list.options.name} list`);
@@ -293,7 +285,7 @@ function addPlayer(list, msg) {
 
   // Special stuff for fortauto
   if (list.options.name === fortAutoName) {
-    let username = msg.content.toLowerCase().replace('!add fortauto', '');
+    let username = gameOptions.tronAuth || '';
     username = username.trim();
 
     if (username === '') {
@@ -408,8 +400,14 @@ function addPlayer(list, msg) {
 
 function removeInactive (list){
   for (player in list.values){
-    if (list.values[player].timestamp + 21600000 < Date.now()) {
-      msg.channel.send(`<@${list.values[player].id}> has been automatically removed after 6 hours.`);
+    const now = new Date();
+    if (list.values[player].entryExpires.getTime() < now.getTime()) {
+      const entryTimestamp = list.values[player].timestamp;
+
+      var deltaMillis = now.getTime() - entryTimestamp.getTime();
+      var expiredInMinutes = Math.round(deltaMillis / 60_000);
+
+      console.log(`<@${list.values[player].id}> has been automatically removed after ${expiredInMinutes} minutes.`);
       list.values.splice(player, 1);
     }
   }
@@ -500,6 +498,27 @@ function clearDuplicates(startedList, targetList, msg) {
   return;
 }
 
+function updateAutoRemoveEntries(removeInMinutes, msg) {
+  var updatedEntries = [];
+  var playerId = msg.author.id;
+  var expires = getDateFromNowInMinutes(removeInMinutes);
+
+  aggList.forEach(gameList => {
+    gameList.values.forEach(player => {
+      if (player.id === playerId) {
+        player.entryExpires = expires;
+        updatedEntries.push(gameList.options.name);
+      }
+    })
+  })
+
+  if (updatedEntries.length == 0) {
+    msg.reply('You are now on any list.');
+  } else {
+    msg.reply(`You will be removed from ${updatedEntries.toString()} in ${removeInMinutes} minutes.`)
+  }
+}
+
 function removePlayerId(list, id) {
   for (let index in list.values) {
     if (list.values[index].id === id) {
@@ -513,9 +532,10 @@ function removePlayerId(list, id) {
 function removePlayer(list, msg) {
   if (removePlayerId(list, msg.author.id)) {
     printList(list, msg.channel);
-    return;
+    return true;
   }
-  msg.reply(`You are not on the ${list.options.name} list`);
+
+  return false;
 }
 
 // Randomize ready to start game modes
@@ -573,6 +593,13 @@ function shuffle(list) {
     let j = Math.floor(Math.random() * list.length);
     [list[i], list[j]] = [list[j], list[i]];
   }
+}
+
+function getDateFromNowInMinutes(minutes) {
+  const now = new Date();
+  const later = new Date(now);
+  later.setMinutes(now.getMinutes() + minutes);
+  return later;
 }
 
 client.login(process.env.DISCORD_TOKEN);
