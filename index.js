@@ -309,7 +309,7 @@ function addPlayer(list, msg) {
         username = discordIdToTronAuth[msg.author.id]
       }
       else {
-        msg.reply("We were unable to find a tron username associated with your discord ID. Please add again with your tron username provided: `!add fortauto <tron auth username>`.");
+        msg.reply("We were unable to find a tron username associated with your discord ID. Please add again with your tron username provided: `!add fortauto <tron auth username>`. If you are a new player, please try `!add fortauto player1`.");
         return;
       }
     }
@@ -452,7 +452,7 @@ function printHelpMessage(msg) {
   msg.reply('available pickup commands are:\n' +
             `**!add**: Add to all available fort / sumo game modes\n` +
             `**!add <gamemode>**: Add to a specific game mode (options are: = fort, tst, wst, or ctf)\n` +
-            `**!add fortauto <tron auth>**: Add fort with auto team generation. Can use **!add fa** for short. Once you've added with your username, it will be cached until the bot restarts (~12 hours) and thus doesn't need to be specified again\n` +
+            `**!add fortauto <tron auth>**: Add fort with auto team generation. Can use **!add fa** for short. Once you've added with your username, it will be cached until the bot restarts (~12 hours) and thus doesn't need to be specified again. If you are a new player or your auth is not captured on https://armarankings.com, you can add using "!add fortauto player1"\n` +
             `**!add sumo**: Add to sumo game modes only\n\n` +
             `**!remove**: Remove from all added game modes\n` +
             `**!remove <gamemode>**: Remove from a specific game mode (options are: fort5, fort6, tst, wst, or ctf)\n\n` +
