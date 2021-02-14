@@ -150,7 +150,7 @@ client.on('message', msg => {
     }
     return;
   }
-  if (lowerCaseMessage.startsWith('!add fortauto')) {
+  if (lowerCaseMessage.startsWith('!add fortauto') || lowerCaseMessage.startsWith('!add fa')) {
     addPlayer(fortautoList, msg);
     return;
   }
@@ -293,9 +293,17 @@ function addPlayer(list, msg) {
 
   // Special stuff for fortauto
   if (list.options.name === fortAutoName) {
-    let username = msg.content.toLowerCase().replace('!add fortauto', '');
+    let username;
+    if (msg.content.toLowerCase().startsWith("!add fa")) {
+      username = msg.content.toLowerCase().replace('!add fa', '');
+    }
+    else {
+      username = msg.content.toLowerCase().replace('!add fortauto', '');
+    }
     username = username.trim();
-
+    let addingAsAnonymous = false;
+    let playerString = 'player';
+    let usernames = list.values.map(item => item.auth);
     if (username === '') {
       if (discordIdToTronAuth[msg.author.id]) {
         username = discordIdToTronAuth[msg.author.id]
@@ -305,8 +313,29 @@ function addPlayer(list, msg) {
         return;
       }
     }
+    // Check if they are adding as player1 (or player7 for example). Since these are both valid in matchmaking from armarankings (anything up to player12 is), 
+    // from discord we want to limit to only adding player1 for simplicity, and automatically increment the number if necessary. 
+    else if (username.startsWith(playerString) && username.replace(playerString, "") in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']) {
+      if (username.replace(playerString, "") != '1') {
+        msg.reply("If you're trying to add as a new user, please use the username `player1`.");
+        return;
+      }
+      else {
+        addingAsAnonymous = true;
+        let i = 1;
+        while (usernames.includes(playerString + i) && i <= 13) {
+          i++;
+        }
+        if (i > 12) {
+          msg.reply("Too many player1s added. Please try a different username.");
+          return;
+        }
+        else {
+          username = playerString + i;
+        }
+      }
+    }
 
-    let usernames = list.values.map(item => item.auth);
     if (usernames.includes(username)) {
       if (tronAuthToDiscordId[username]) {
         msg.reply("It looks like <@" + tronAuthToDiscordId[username] + "> is already signed up with that tron username. Please use another or have them add again with something else.");
@@ -321,7 +350,9 @@ function addPlayer(list, msg) {
       try {
         const response = await got(armarankingsUrl + '/api/players/exists?username=' + username + '&match_subtype_id=pickup-fortress-all');
         if (response.body === '1') {
-          discordIdToTronAuth[msg.author.id] = username;
+          if (!addingAsAnonymous) {
+            discordIdToTronAuth[msg.author.id] = username;
+          }
           tronAuthToDiscordId[username] = msg.author.id;
           newPlayer['auth'] = username;
           list.values.push(newPlayer);
@@ -377,7 +408,7 @@ function addPlayer(list, msg) {
         }
 
         else {
-          msg.reply("We couldn't add you to fortauto because we couldn't find the provided auth in armarankings. Usage: `!add fortauto <tron auth username, i.e blah@forums>`.");
+          msg.reply("We couldn't add you to fortauto because we couldn't find the provided auth in armarankings. If you typed your username correctly and just aren't in the system yet, please add with `player1` as your username (but play with your usual username). Usage: `!add fortauto <tron auth username, i.e blah@forums or player1>`.");
         }
         return;
       } catch (error) {
@@ -421,7 +452,7 @@ function printHelpMessage(msg) {
   msg.reply('available pickup commands are:\n' +
             `**!add**: Add to all available fort / sumo game modes\n` +
             `**!add <gamemode>**: Add to a specific game mode (options are: = fort, tst, wst, or ctf)\n` +
-            `**!add fortauto <tron auth>**: Add fort with auto team generation\n` +
+            `**!add fortauto <tron auth>**: Add fort with auto team generation. Can use **!add fa** for short. Once you've added with your username, it will be cached until the bot restarts (~12 hours) and thus doesn't need to be specified again\n` +
             `**!add sumo**: Add to sumo game modes only\n\n` +
             `**!remove**: Remove from all added game modes\n` +
             `**!remove <gamemode>**: Remove from a specific game mode (options are: fort5, fort6, tst, wst, or ctf)\n\n` +
