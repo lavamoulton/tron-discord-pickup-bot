@@ -383,10 +383,10 @@ function addPlayer(list, msg) {
 
                 msg.channel.send(
                   list.options.name + " ready to start!\n"
-                  + "**Team gold**: " + team_1.join(', ') + "\n"
-                  + "**Team gold captain**: <@" + tronAuthToDiscordId[body.team_1.captain.toLowerCase()] + "> (" + body.team_1.captain + ")\n"
-                  + "**Team blue**: " + team_2.join(', ') + "\n"
-                  + "**Team blue captain**: <@" + tronAuthToDiscordId[body.team_2.captain.toLowerCase()] + "> (" + body.team_2.captain + ")\n"
+                  + "**Team blue**: " + team_1.join(', ') + "\n"
+                  + "**Team blue captain**: <@" + tronAuthToDiscordId[body.team_1.captain.toLowerCase()] + "> (" + body.team_1.captain + ")\n"
+                  + "**Team gold**: " + team_2.join(', ') + "\n"
+                  + "**Team gold captain**: <@" + tronAuthToDiscordId[body.team_2.captain.toLowerCase()] + "> (" + body.team_2.captain + ")\n"
                 );
                 return;
               } catch(error) {
@@ -555,10 +555,10 @@ function getRandom(list) {
   if (list.options.name === 'TST') {
     shuffle(list.values);
     return (
-      `Team 1: <@${list.values[0].id}>, <@${list.values[1].id}>\n` +
-      `Team 2: <@${list.values[2].id}>, <@${list.values[3].id}>\n` +
-      `Team 3: <@${list.values[4].id}>, <@${list.values[5].id}>\n` +
-      `Team 4: <@${list.values[6].id}>, <@${list.values[7].id}>\n`
+      `Team purple: <@${list.values[0].id}>, <@${list.values[1].id}>\n` +
+      `Team orange: <@${list.values[2].id}>, <@${list.values[3].id}>\n` +
+      `Team cyan: <@${list.values[4].id}>, <@${list.values[5].id}>\n` +
+      `Team gold: <@${list.values[6].id}>, <@${list.values[7].id}>\n`
     );
   }
   if (list.options.name === 'Fort' || 'WST' || 'CTF' || 'Fort AUTO') {
