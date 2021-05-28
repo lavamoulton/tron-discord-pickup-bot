@@ -97,6 +97,14 @@ const captainList = [
   "357949343317229589",
   "445298849091944448",
   "755291629128122439"
+  "361012105266331649",
+  "819678092943163432",
+  "829459793986977833",
+  "398565660780658688",
+  "654137519620882438",
+  "755501501559996507",
+  "823473394765922308",
+  "128371452440215552"
 ];
 
 client.on('ready', () => {
@@ -251,7 +259,7 @@ client.on('message', msg => {
     }
     return;
   }
-  
+
   // updateTopic(msg.channel);
 });
 
@@ -283,7 +291,7 @@ function addPlayer(list, msg) {
     msg.reply(`Can't add you to ${list.options.name} because it's full`);
     return true;
   }
-  
+
   const newPlayer = { id: msg.author.id, name: msg.member.displayName, timestamp: Date.now() };
 
   if (list.values.some(player => player.id === newPlayer.id)) {
@@ -313,8 +321,8 @@ function addPlayer(list, msg) {
         return;
       }
     }
-    // Check if they are adding as player1 (or player7 for example). Since these are both valid in matchmaking from armarankings (anything up to player12 is), 
-    // from discord we want to limit to only adding player1 for simplicity, and automatically increment the number if necessary. 
+    // Check if they are adding as player1 (or player7 for example). Since these are both valid in matchmaking from armarankings (anything up to player12 is),
+    // from discord we want to limit to only adding player1 for simplicity, and automatically increment the number if necessary.
     else if (username.startsWith(playerString) && username.replace(playerString, "") in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']) {
       if (username.replace(playerString, "") != '1') {
         msg.reply("If you're trying to add as a new user, please use the username `player1`.");
@@ -424,7 +432,7 @@ function addPlayer(list, msg) {
 
     if (list.values.length === list.options.maxPlayers) {
       msg.channel.send(
-        `${list.options.name} ready to start!\n${getRandom(list)}` 
+        `${list.options.name} ready to start!\n${getRandom(list)}`
       );
 
       clearOtherLists(list, msg);
@@ -589,7 +597,7 @@ function getDraft(list) {
       nonCaptains.splice(index, 1);
     }
   });
-  
+
   nonCaptains = nonCaptains.map(player => `<@${player.id}>`);
 
   return (
