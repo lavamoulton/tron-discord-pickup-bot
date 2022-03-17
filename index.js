@@ -31,14 +31,6 @@ const wstList = {
   }
 };
 
-const kothList = {
-  values: [],
-  options: {
-    maxPlayers: 8,
-    name: 'KOTH'
-  }
-};
-
 const ctfList = {
   values: [],
   options: {
@@ -59,7 +51,7 @@ const fortautoList = {
 let discordIdToTronAuth = {};
 let tronAuthToDiscordId = {};
 
-const aggList = [wstList, tstList, ctfList, fortList, kothList, fortautoList];
+const aggList = [wstList, tstList, ctfList, fortList, experimentalList, fortautoList];
 
 const captainList = [
   "397820413545152524",
@@ -140,10 +132,6 @@ client.on('message', msg => {
     addPlayer(fortList, msg);
     return;
   }
-  if (lowerCaseMessage === '!add koth') {
-    addPlayer(kothList, msg);
-    return;
-  }
   if (lowerCaseMessage === '!add sumo') {
     if (addPlayer(wstList, msg)) {
       addPlayer(tstList, msg);
@@ -161,6 +149,10 @@ client.on('message', msg => {
     return;
   }
   if (lowerCaseMessage === '!add') {
+    if (fortList.values.length == 11) {
+      addPlayer(fortList, msg);
+      return;
+    }
     if (addPlayer(tstList, msg)) {
       addPlayer(fortList, msg);
     }
@@ -197,12 +189,15 @@ client.on('message', msg => {
     removePlayer(ctfList, msg);
     return;
   }
+  if (lowerCaseMessage === '!remove fa' || lowerCaseMessage === '!remove fortauto') {
+    removePlayer(fortautoList, msg);
+  }
   if (lowerCaseMessage === '!remove') {
     let onTSTList = false;
     let onfortList = false;
     let onWSTList = false;
     let onCTFList = false;
-    let onKothList = false;
+    let onExList = false;
     let onfortautoList = false;
     if (removePlayerId(wstList, msg.author.id)) {
       printList(wstList, msg.channel);
@@ -220,15 +215,11 @@ client.on('message', msg => {
       printList(fortList, msg.channel);
       onfortList5 = true;
     }
-    if (removePlayerId(kothList, msg.author.id)) {
-      printList(kothList, msg.channel);
-      onKothList = true;
-    }
     if (removePlayerId(fortautoList, msg.author.id)) {
       printList(fortautoList, msg.channel);
       onfortautoList = true;
     }
-    if (!onTSTList && !onfortList && !onKothList && !onWSTList && !onCTFList && !onfortautoList) {
+    if (!onTSTList && !onfortList && !onExList && !onWSTList && !onCTFList && !onfortautoList) {
       msg.reply(`You are not on any list`);
     }
     return;
@@ -251,8 +242,6 @@ client.on('message', msg => {
     }
     return;
   }
-  
-  // updateTopic(msg.channel);
 });
 
 // Development / Testing helper functions
@@ -439,8 +428,8 @@ function addPlayer(list, msg) {
 
 function removeInactive (list){
   for (player in list.values){
-    if (list.values[player].timestamp + 21600000 < Date.now()) {
-      msg.channel.send(`<@${list.values[player].id}> has been automatically removed after 6 hours.`);
+    if (list.values[player].timestamp + 7200000 < Date.now()) {
+      msg.channel.send(`<@${list.values[player].id}> has been automatically removed after 2 hours.`);
       list.values.splice(player, 1);
     }
   }
@@ -451,7 +440,7 @@ function removeInactive (list){
 function printHelpMessage(msg) {
   msg.reply('available pickup commands are:\n' +
             `**!add**: Add to all available fort / sumo game modes\n` +
-            `**!add <gamemode>**: Add to a specific game mode (options are: = fort, tst, wst, or ctf)\n` +
+            `**!add <gamemode>**: Add to a specific game mode (options are: = fort, tst, wst, ctf, ex (experimental))\n` +
             `**!add fortauto <tron auth>**: Add fort with auto team generation. Can use **!add fa** for short. Once you've added with your username, it will be cached until the bot restarts (~12 hours) and thus doesn't need to be specified again. If you are a new player or your auth is not captured on https://armarankings.com, you can add using "!add fortauto player1"\n` +
             `**!add sumo**: Add to sumo game modes only\n\n` +
             `**!remove**: Remove from all added game modes\n` +
@@ -552,7 +541,7 @@ function removePlayer(list, msg) {
 // Randomize ready to start game modes
 
 function getRandom(list) {
-  if (list.options.name === 'TST') {
+  if (list.options.name === 'TST' || list.options.name === 'Experimental') {
     shuffle(list.values);
     return (
       `Team purple: <@${list.values[0].id}>, <@${list.values[1].id}>\n` +
@@ -574,7 +563,11 @@ function getRandom(list) {
 
 function getDraft(list) {
   const captains = [];
-  let nonCaptains = list.values;
+  let nonCaptains = list.values
+    .slice(2, list.values.length)
+    .map(player => `<@${player.id}>`);
+
+  /*
   list.values.forEach(player => {
     if (captains.length < 2) {
       if (captainList.includes(player.id)) {
@@ -590,7 +583,7 @@ function getDraft(list) {
     }
   });
   
-  nonCaptains = nonCaptains.map(player => `<@${player.id}>`);
+  nonCaptains = nonCaptains.map(player => `<@${player.id}>`);*/
 
   return (
     `Team 1 captain: <@${captains[0].id}>\n` +
