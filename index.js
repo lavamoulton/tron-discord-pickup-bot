@@ -586,8 +586,8 @@ function getDraft(list) {
   nonCaptains = nonCaptains.map(player => `<@${player.id}>`);*/
 
   return (
-    `Team 1 captain: <@${captains[0].id}>\n` +
-    `Team 2 captain: <@${captains[1].id}>\n` +
+    `Team 1 captain: <@${list.values[0].id}>\n` +
+    `Team 2 captain: <@${list.values[1].id}>\n` +
     `Everyone else: ${nonCaptains}`
   );
 }
