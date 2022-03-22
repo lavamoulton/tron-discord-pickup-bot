@@ -39,6 +39,14 @@ const ctfList = {
   }
 };
 
+const sbList = {
+  values: [],
+  options: {
+    maxPlayers: 8,
+    name: 'Sumobar'
+  }
+}
+
 const fortAutoName = 'Fort AUTO'
 const fortautoList = {
   values: [],
@@ -51,7 +59,7 @@ const fortautoList = {
 let discordIdToTronAuth = {};
 let tronAuthToDiscordId = {};
 
-const aggList = [wstList, tstList, ctfList, fortList, experimentalList, fortautoList];
+const aggList = [wstList, tstList, ctfList, fortList, sbList, fortautoList];
 
 const captainList = [
   "397820413545152524",
@@ -132,6 +140,10 @@ client.on('message', msg => {
     addPlayer(fortList, msg);
     return;
   }
+  if (lowerCaseMessage === '!add sumobar' || lowerCaseMessage === '!add sb') {
+    addPlayer(sbList, msg);
+    return;
+  }
   if (lowerCaseMessage === '!add sumo') {
     if (addPlayer(wstList, msg)) {
       addPlayer(tstList, msg);
@@ -185,6 +197,10 @@ client.on('message', msg => {
     removePlayer(wstList, msg);
     return;
   }
+  if (lowerCaseMessage === '!remove sumobar' || lowerCaseMessage === '!remove sb') {
+    removePlayer(sbList, msg);
+    return;
+  }
   if (lowerCaseMessage === '!remove ctf') {
     removePlayer(ctfList, msg);
     return;
@@ -194,10 +210,10 @@ client.on('message', msg => {
   }
   if (lowerCaseMessage === '!remove') {
     let onTSTList = false;
-    let onfortList = false;
+    let onFortList = false;
     let onWSTList = false;
     let onCTFList = false;
-    let onExList = false;
+    let onSBList = false;
     let onfortautoList = false;
     if (removePlayerId(wstList, msg.author.id)) {
       printList(wstList, msg.channel);
@@ -211,9 +227,13 @@ client.on('message', msg => {
       printList(ctfList, msg.channel);
       onCTFList = true;
     }
+    if (removePlayerId(sbList, msg.author.id)) {
+      printList(sbList, msg.channel);
+      onSBList = true;
+    }
     if (removePlayerId(fortList, msg.author.id)) {
       printList(fortList, msg.channel);
-      onfortList5 = true;
+      onFortList = true;
     }
     if (removePlayerId(fortautoList, msg.author.id)) {
       printList(fortautoList, msg.channel);
@@ -440,7 +460,7 @@ function removeInactive (list){
 function printHelpMessage(msg) {
   msg.reply('available pickup commands are:\n' +
             `**!add**: Add to all available fort / sumo game modes\n` +
-            `**!add <gamemode>**: Add to a specific game mode (options are: = fort, tst, wst, ctf, ex (experimental))\n` +
+            `**!add <gamemode>**: Add to a specific game mode (options are: = fort, tst, wst, ctf, sumobar)\n` +
             `**!add fortauto <tron auth>**: Add fort with auto team generation. Can use **!add fa** for short. Once you've added with your username, it will be cached until the bot restarts (~12 hours) and thus doesn't need to be specified again. If you are a new player or your auth is not captured on https://armarankings.com, you can add using "!add fortauto player1"\n` +
             `**!add sumo**: Add to sumo game modes only\n\n` +
             `**!remove**: Remove from all added game modes\n` +
@@ -541,7 +561,7 @@ function removePlayer(list, msg) {
 // Randomize ready to start game modes
 
 function getRandom(list) {
-  if (list.options.name === 'TST' || list.options.name === 'Experimental') {
+  if (list.options.name === 'TST') {
     shuffle(list.values);
     return (
       `Team purple: <@${list.values[0].id}>, <@${list.values[1].id}>\n` +
@@ -554,7 +574,7 @@ function getRandom(list) {
     shuffle(list.values);
     return getDraft(list);
   }
-  if (list.options.name === 'KOTH') {
+  if (list.options.name === 'Sumobar') {
     const newList = list.values.map(player => `<@${player.id}>`);
     return `Players: ${newList}`;
   }
